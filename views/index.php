@@ -15,7 +15,7 @@ require_once("../templates/views_top.php"); ?>
   <div class="row">
 
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card border-left-primary shadow h-100 py-2" onclick="window.location.href='users'" style="cursor: pointer;">
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
@@ -61,13 +61,13 @@ require_once("../templates/views_top.php"); ?>
     </div>
 
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card border-left-warning shadow h-100 py-2" onclick="window.location.href='kontak'" style="cursor: pointer;">
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
               <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                Chat</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= mysqli_num_rows($views_chat); ?></div>
+                Kontak</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><?= mysqli_num_rows($views_kontak); ?></div>
             </div>
             <div class="col-auto">
               <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -253,7 +253,7 @@ require_once("../templates/views_top.php"); ?>
         </div>
       </div>
     </div>
-    
+
   </div>
 
 </div>

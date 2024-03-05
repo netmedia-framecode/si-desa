@@ -1,105 +1,107 @@
-<!DOCTYPE html>
-<html lang="id">
+<?php require_once("templates/top.php"); ?>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistem Informasi Desa</title>
-
-  <style type="text/css">
-    ::selection {
-      background-color: #e13300;
-      color: white;
-    }
-
-    ::-moz-selection {
-      background-color: #e13300;
-      color: white;
-    }
-
-    body {
-      background-color: #fff;
-      margin: 40px;
-      font: 13px/20px normal Helvetica, Arial, sans-serif;
-      color: #4f5155;
-    }
-
-    a {
-      color: #003399;
-      background-color: transparent;
-      font-weight: normal;
-    }
-
-    h1 {
-      color: #444;
-      background-color: transparent;
-      border-bottom: 1px solid #d0d0d0;
-      font-size: 19px;
-      font-weight: normal;
-      margin: 0 0 14px 0;
-      padding: 14px 15px 10px 15px;
-    }
-
-    code {
-      font-family: Consolas, Monaco, Courier New, Courier, monospace;
-      font-size: 12px;
-      background-color: #f9f9f9;
-      border: 1px solid #d0d0d0;
-      color: #002166;
-      display: block;
-      margin: 14px 0 14px 0;
-      padding: 12px 10px 12px 10px;
-    }
-
-    #body {
-      margin: 0 15px 0 15px;
-    }
-
-    p.footer {
-      text-align: right;
-      font-size: 11px;
-      border-top: 1px solid #d0d0d0;
-      line-height: 32px;
-      padding: 0 10px 0 10px;
-      margin: 20px 0 0 0;
-    }
-
-    #container {
-      margin: 10px;
-      border: 1px solid #d0d0d0;
-      box-shadow: 0 0 8px #d0d0d0;
-    }
-  </style>
-</head>
-
-<body>
-  <div id="container">
-    <h1>Project Sistem Informasi Desa</h1>
-
-    <div id="body">
-      <p>
-        Halaman yang Anda lihat dibuat secara dinamis oleh Netmedia Framecode.
-      </p>
-      <p>
-        Tampilan <strong>UI (User Interface)</strong> dan <strong>Console</strong> dapat anda ubah dengan melihat berbagai macam template dari vendor Netmedia Framecode
-      </p>
-      <code><i class="bi bi-list"></i>
-        <h3>Template UI</h3>
-        <a href="https://free-css.com/free-css-templates" style="width: 100%; height: 75vh;" frameborder="0" target="_blank">Lihat template</a>
-      </code>
-      <code><i class="bi bi-list"></i>
-        <h3>Template Console</h3>
-        <iframe src="https://freshdesignweb.com/free-admin-templates/" style="width: 100%;height: 75vh;" frameborder="0"></iframe>
-      </code>
-      <p>
-        Jika anda ingin melanjutkan ke <strong>Console</strong> bisa klik link dibawah ini:
-      </p>
-      <code><i class="bi bi-list"></i>
-        <a href="auth/" style="text-decoration: none;">auth/</a>
-      </code>
+<section class="slider_section long_section">
+  <div id="customCarousel" class="carousel slide" data-ride="carousel">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <div class="container ">
+          <div class="row">
+            <div class="col-md-5">
+              <div class="detail-box">
+                <h1>
+                  Pelayanan Kependudkan <br>
+                  Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua
+                </h1>
+                <p>
+                  Dapat menyimpan data penduduk secara dinamis serta dapat melayani dan mengajuhkan permohonan surat kependudukan kapan saja dan dimana saja tanpa harus memakan waktu dan tenaga yang cukup lama.
+                </p>
+                <div class="btn-box">
+                  <a href="kontak" class="btn1">
+                    Kontak
+                  </a>
+                  <a href="surat" class="btn2">
+                    Surat
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-7">
+              <div class="img-box">
+                <img src="assets/img/header.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</body>
+</section>
+</div>
 
-</html>
+<?php if (mysqli_num_rows($views_menu_surat_keterangan) > 0) { ?>
+  <section class="furniture_section layout_padding">
+    <div class="container">
+      <div class="heading_container">
+        <h2>
+          Surat Keterangan
+        </h2>
+      </div>
+      <div class="row">
+        <?php while ($data = mysqli_fetch_assoc($views_menu_surat_keterangan)) { ?>
+          <div class="col-md-6 col-lg-4">
+            <a href="surat-terpilih?id=<?= $data['id_sub_menu'] ?>">
+              <div class="box shadow">
+                <div class="img-box">
+                  <img src="assets/img/letter.png" alt="">
+                </div>
+                <div class="detail-box">
+                  <h5 class="text-dark">
+                    <?= $data['title'] ?>
+                  </h5>
+                  <div class="price_box justify-content-start">
+                    <a class="btn btn-primary text-white shadow" href="surat-terpilih?id=<?= $data['id_sub_menu'] ?>">
+                      Pilih
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        <?php } ?>
+      </div>
+      <div class="text-center mt-5">
+        <a href="surat" class="btn btn-primary">Lihat Lebih</a>
+      </div>
+    </div>
+  </section>
+<?php } ?>
+
+<section class="about_section layout_padding long_section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="img-box">
+          <img src="assets/img/tentang.jpg" alt="">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="detail-box">
+          <div class="heading_container">
+            <h2>
+              Tentang
+            </h2>
+          </div>
+          <p class="text-justify">
+            Sistem Informasi Desa adalah bagian tak terpisahkan dalam
+            implementasi Undang – Undang Desa No.6 Tahun 2016. UU Desa Pasal 86 tentang Sistem Informasi Pembangunan Desa dan Pembangunan Kawasan Perdesaan jelas disebutkan bahwa desa berhak mendapatkan akses informasi melalui sistem informasi yang dikembangkan oleh Pemerintah Daerah Kabupaten atau Kota. Teknolgi informasi dan komuni...
+          </p>
+          <a href="tentang" class="btn btn-primary">
+            Baca Lebih
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<?php require_once("templates/bottom.php"); ?>

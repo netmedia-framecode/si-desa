@@ -3,7 +3,7 @@
 }
 error_reporting(~E_NOTICE & ~E_DEPRECATED);
 require_once("db_connect.php");
-require_once("../models/sql.php");
+require_once(__DIR__ . "/../models/sql.php");
 require_once("functions.php");
 
 $messageTypes = ["success", "info", "warning", "danger", "dark"];
@@ -13,6 +13,46 @@ $name_website = "Sistem Informasi Desa";
 
 $select_auth = "SELECT * FROM auth";
 $views_auth = mysqli_query($conn, $select_auth);
+
+$menu_surat_keterangan = "SELECT user_sub_menu.* 
+                         FROM user_menu 
+                         JOIN user_sub_menu ON user_menu.id_menu = user_sub_menu.id_menu 
+                         WHERE user_menu.menu = 'Surat Keterangan' 
+                         ORDER BY user_sub_menu.id_sub_menu ASC 
+                         LIMIT 3";
+$views_menu_surat_keterangan = mysqli_query($conn, $menu_surat_keterangan);
+$menu_surat_keterangan_all = "SELECT user_sub_menu.* 
+                         FROM user_menu 
+                         JOIN user_sub_menu ON user_menu.id_menu = user_sub_menu.id_menu 
+                         WHERE user_menu.menu = 'Surat Keterangan'";
+$views_menu_surat_keterangan_all = mysqli_query($conn, $menu_surat_keterangan_all);
+$visi = "SELECT * FROM visi";
+$views_visi = mysqli_query($conn, $visi);
+$misi = "SELECT * FROM misi";
+$views_misi = mysqli_query($conn, $misi);
+
+if (isset($_POST['add_kontak'])) {
+  $validated_post = array_map(function ($value) use ($conn) {
+    return valid($conn, $value);
+  }, $_POST);
+  if (kontak($conn, $validated_post, $action = 'insert', $pesan = $_POST['pesan']) > 0) {
+    $message = "Pesan anda berhasil dikirim.";
+    $message_type = "success";
+    alert($message, $message_type);
+    if (isset($_SESSION["page_name"])) {
+      if ($_SESSION["page_name"] == "Kontak") {
+        header("Location: kontak");
+        exit();
+      } else if ($_SESSION["page_name"] == "Surat Terpilih") {
+        header("Location: surat");
+        exit();
+      }
+    } else {
+      header("Location: kontak");
+      exit();
+    }
+  }
+}
 
 if (!isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
   if (isset($_SESSION["project_sistem_informasi_desa"]["time_message"]) && (time() - $_SESSION["project_sistem_informasi_desa"]["time_message"]) > 2) {
@@ -920,6 +960,37 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $chat = "SELECT * FROM chat";
-  $views_chat = mysqli_query($conn, $chat);
+  $kontak = "SELECT * FROM kontak";
+  $views_kontak = mysqli_query($conn, $kontak);
+
+  if (isset($_POST['edit_visi'])) {
+    if (visi($conn, $_POST, $action = 'update') > 0) {
+      $message = "Visi berhasil diubah.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: visi");
+      exit();
+    }
+  }
+  if (isset($_POST['edit_misi'])) {
+    if (misi($conn, $_POST, $action = 'update') > 0) {
+      $message = "Misi berhasil diubah.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: misi");
+      exit();
+    }
+  }
+  if (isset($_POST['delete_kontak'])) {
+    $validated_post = array_map(function ($value) use ($conn) {
+      return valid($conn, $value);
+    }, $_POST);
+    if (kontak($conn, $validated_post, $action = 'delete', $pesan = "") > 0) {
+      $message = "Kontak berhasil dihapus.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: kontak");
+      exit();
+    }
+  }
 }

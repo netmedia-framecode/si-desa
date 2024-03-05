@@ -59,6 +59,20 @@ function compressImage($source, $destination, $quality)
   return $destination;
 }
 
+function kontak($conn, $data, $action, $pesan)
+{
+  if ($action == "insert") {
+    $sql = "INSERT INTO kontak(username,email,phone,pesan) VALUES('$data[username]','$data[email]','$data[phone]','$pesan')";
+  }
+
+  if ($action == "delete") {
+    $sql = "DELETE FROM kontak WHERE id_kontak='$data[id_kontak]'";
+  }
+
+  mysqli_query($conn, $sql);
+  return mysqli_affected_rows($conn);
+}
+
 if (!isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
   function register($conn, $data, $action)
   {
@@ -1318,6 +1332,26 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
 
     if ($action == "delete") {
       $sql = "DELETE FROM suket_usaha WHERE id_suket_usaha='$data[id_suket_usaha]'";
+    }
+
+    mysqli_query($conn, $sql);
+    return mysqli_affected_rows($conn);
+  }
+
+  function visi($conn, $data, $action)
+  {
+    if ($action == "update") {
+      $sql = "UPDATE visi SET visi='$data[visi]'";
+    }
+
+    mysqli_query($conn, $sql);
+    return mysqli_affected_rows($conn);
+  }
+
+  function misi($conn, $data, $action)
+  {
+    if ($action == "update") {
+      $sql = "UPDATE misi SET misi='$data[misi]'";
     }
 
     mysqli_query($conn, $sql);
