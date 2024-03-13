@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 07 Mar 2024 pada 01.59
+-- Waktu pembuatan: 13 Mar 2024 pada 05.18
 -- Versi server: 10.4.28-MariaDB
 -- Versi PHP: 8.2.4
 
@@ -224,6 +224,7 @@ INSERT INTO `rw` (`id_rw`, `id_desa`, `rw`, `created_at`, `updated_at`) VALUES
 CREATE TABLE `suket_domisili` (
   `id_suket_domisili` int(11) NOT NULL,
   `id_desa` int(11) DEFAULT NULL,
+  `id_user` int(11) NOT NULL DEFAULT 1,
   `no_surat` varchar(75) DEFAULT NULL,
   `nama_p1` varchar(75) DEFAULT NULL,
   `jabatan_p1` varchar(50) DEFAULT NULL,
@@ -247,8 +248,8 @@ CREATE TABLE `suket_domisili` (
 -- Dumping data untuk tabel `suket_domisili`
 --
 
-INSERT INTO `suket_domisili` (`id_suket_domisili`, `id_desa`, `no_surat`, `nama_p1`, `jabatan_p1`, `jk_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `jk_p2`, `alamat_p2`, `agama_p2`, `pekerjaan_p2`, `sejak_tgl_p2`, `tgl_surat_p2`, `ket_p2`, `created_at`, `updated_at`) VALUES
-(5, 1, '179/ SKETB / DS.DL / VI/ 2021', 'ADRIANA HILA KORE', 'Sekretaris Desa', 'Perempuan', 'RT 001, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'VERLY APRIYANTO BOLA NGURU', 'Jamikerata', '2006-11-08', 'Laki-laki', 'RT 014, RW 007, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', 'Pelajar', '2006-11-08', '2021-06-11', 'akan melanjutkan studi ke Kupang di SMK Negeri 3 Kupang', '2024-02-29 05:52:29', '2024-02-29 05:52:29');
+INSERT INTO `suket_domisili` (`id_suket_domisili`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `jk_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `jk_p2`, `alamat_p2`, `agama_p2`, `pekerjaan_p2`, `sejak_tgl_p2`, `tgl_surat_p2`, `ket_p2`, `created_at`, `updated_at`) VALUES
+(5, 1, 2, '179/ SKETB / DS.DL / VI/ 2021', 'ADRIANA HILA KORE', 'Sekretaris Desa', 'Perempuan', 'RT 001, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'VERLY APRIYANTO BOLA NGURU', 'Jamikerata', '2006-11-08', 'Laki-laki', 'RT 014, RW 007, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', 'Pelajar', '2006-11-08', '2021-06-11', 'akan melanjutkan studi ke Kupang di SMK Negeri 3 Kupang', '2024-02-29 05:52:29', '2024-03-13 12:04:32');
 
 -- --------------------------------------------------------
 
@@ -259,6 +260,7 @@ INSERT INTO `suket_domisili` (`id_suket_domisili`, `id_desa`, `no_surat`, `nama_
 CREATE TABLE `suket_kelahiran` (
   `id_suket_kelahiran` int(11) NOT NULL,
   `id_desa` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL DEFAULT 1,
   `no_surat` varchar(75) DEFAULT NULL,
   `nama_p1` varchar(75) DEFAULT NULL,
   `jabatan_p1` varchar(50) DEFAULT NULL,
@@ -285,8 +287,8 @@ CREATE TABLE `suket_kelahiran` (
 -- Dumping data untuk tabel `suket_kelahiran`
 --
 
-INSERT INTO `suket_kelahiran` (`id_suket_kelahiran`, `id_desa`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `jk_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `alamat_p2`, `anak_ke_p2`, `nama_ayah`, `umur_ayah`, `alamat_ayah`, `pekerjaan_ayah`, `nama_ibu`, `umur_ibu`, `alamat_ibu`, `pekerjaan_ibu`, `created_at`, `updated_at`) VALUES
-(1, 1, '009 /SKK/DS.DL-SR/I/2024', 'DANIEL LOGO', 'Kepala Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'RIFAN HAPR', 'Laki-laki', 'Muli', '1985-09-01', 'RT 015, RW 008, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 4, '', 0, '', '', 'RIBKA LUDJI WOLO', 0, '', '', '2024-02-29 05:16:51', '2024-02-29 05:45:24');
+INSERT INTO `suket_kelahiran` (`id_suket_kelahiran`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `jk_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `alamat_p2`, `anak_ke_p2`, `nama_ayah`, `umur_ayah`, `alamat_ayah`, `pekerjaan_ayah`, `nama_ibu`, `umur_ibu`, `alamat_ibu`, `pekerjaan_ibu`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, '009 /SKK/DS.DL-SR/I/2024', 'DANIEL LOGO', 'Kepala Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'RIFAN HAPR', 'Laki-laki', 'Muli', '1985-09-01', 'RT 015, RW 008, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 4, '', 0, '', '', 'RIBKA LUDJI WOLO', 0, '', '', '2024-02-29 05:16:51', '2024-03-13 12:05:16');
 
 -- --------------------------------------------------------
 
@@ -298,6 +300,7 @@ CREATE TABLE `suket_kematian` (
   `id_suket_kematian` int(11) NOT NULL,
   `id_desa` int(11) DEFAULT NULL,
   `id_desa_kematian` int(11) DEFAULT NULL,
+  `id_user` int(11) NOT NULL DEFAULT 1,
   `no_surat` varchar(75) DEFAULT NULL,
   `nama_p1` varchar(75) DEFAULT NULL,
   `jabatan_p1` varchar(50) DEFAULT NULL,
@@ -319,8 +322,8 @@ CREATE TABLE `suket_kematian` (
 -- Dumping data untuk tabel `suket_kematian`
 --
 
-INSERT INTO `suket_kematian` (`id_suket_kematian`, `id_desa`, `id_desa_kematian`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `jk_p2`, `alamat_p2`, `agama_p2`, `tgl_kematian`, `waktu_kematian`, `pekerjaan_p2`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, '092/ DS.DL /SKK/ V/ 2023', 'DANIEL LOGO', 'Kepala Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'DOMINGGUS ROHI', 'Delo', '1942-07-25', 'Laki-laki', 'RT 002, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', '2001-03-02', '03:30:00', 'Petani/Pekebun', '2024-02-29 09:33:30', '2024-02-29 09:47:44');
+INSERT INTO `suket_kematian` (`id_suket_kematian`, `id_desa`, `id_desa_kematian`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `jk_p2`, `alamat_p2`, `agama_p2`, `tgl_kematian`, `waktu_kematian`, `pekerjaan_p2`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 2, '092/ DS.DL /SKK/ V/ 2023', 'DANIEL LOGO', 'Kepala Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'DOMINGGUS ROHI', 'Delo', '1942-07-25', 'Laki-laki', 'RT 002, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', '2001-03-02', '03:30:00', 'Petani/Pekebun', '2024-02-29 09:33:30', '2024-03-13 12:06:02');
 
 -- --------------------------------------------------------
 
@@ -331,6 +334,7 @@ INSERT INTO `suket_kematian` (`id_suket_kematian`, `id_desa`, `id_desa_kematian`
 CREATE TABLE `suket_non_kk` (
   `id_suket_non_kk` int(11) NOT NULL,
   `id_desa` int(11) DEFAULT NULL,
+  `id_user` int(11) NOT NULL DEFAULT 1,
   `no_surat` varchar(75) DEFAULT NULL,
   `nama_p1` varchar(75) DEFAULT NULL,
   `jabatan_p1` varchar(50) DEFAULT NULL,
@@ -351,8 +355,8 @@ CREATE TABLE `suket_non_kk` (
 -- Dumping data untuk tabel `suket_non_kk`
 --
 
-INSERT INTO `suket_non_kk` (`id_suket_non_kk`, `id_desa`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `jk_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `pekerjaan_p2`, `agama_p2`, `kewarganegaraan`, `alamat_p2`, `created_at`, `updated_at`) VALUES
-(1, 1, '140/DS.DL/ SKET.BMKK/VII/ 2023', 'Adriana Hila Kore', 'Sekretaris Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'PETRONELA HILA KORE', 'Perempuan', 'Delo', '1992-01-24', 'Petani/Pekebun', 'Kristen', 'Indonesia', 'RT 001, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', '2024-02-29 21:44:41', '2024-02-29 21:45:34');
+INSERT INTO `suket_non_kk` (`id_suket_non_kk`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `jk_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `pekerjaan_p2`, `agama_p2`, `kewarganegaraan`, `alamat_p2`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, '140/DS.DL/ SKET.BMKK/VII/ 2023', 'Adriana Hila Kore', 'Sekretaris Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'PETRONELA HILA KORE', 'Perempuan', 'Delo', '1992-01-24', 'Petani/Pekebun', 'Kristen', 'Indonesia', 'RT 001, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', '2024-02-29 21:44:41', '2024-03-13 12:08:42');
 
 -- --------------------------------------------------------
 
@@ -363,6 +367,7 @@ INSERT INTO `suket_non_kk` (`id_suket_non_kk`, `id_desa`, `no_surat`, `nama_p1`,
 CREATE TABLE `suket_tidak_mampu` (
   `id_suket_tidak_mampu` int(11) NOT NULL,
   `id_desa` int(11) DEFAULT NULL,
+  `id_user` int(11) NOT NULL DEFAULT 1,
   `no_surat` varchar(75) DEFAULT NULL,
   `nama_p1` varchar(75) DEFAULT NULL,
   `jabatan_p1` varchar(50) DEFAULT NULL,
@@ -395,8 +400,8 @@ CREATE TABLE `suket_tidak_mampu` (
 -- Dumping data untuk tabel `suket_tidak_mampu`
 --
 
-INSERT INTO `suket_tidak_mampu` (`id_suket_tidak_mampu`, `id_desa`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_ayah`, `umur_ayah`, `alamat_ayah`, `pekerjaan_ayah`, `agama_ayah`, `nama_ibu`, `umur_ibu`, `alamat_ibu`, `pekerjaan_ibu`, `agama_ibu`, `nama_anak`, `tempat_lahir_anak`, `tgl_lahir_anak`, `nik_anak`, `no_kk_anak`, `jk_anak`, `umur_anak`, `alamat_anak`, `pekerjaan_anak`, `agama_anak`, `created_at`, `updated_at`) VALUES
-(1, 1, '119/SKET. TM/ DS. DL/VII/2023', 'ADRIANA HILA KORE', 'Sekretaris Desa Delo', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'OKTOVIANUS KABO', 51, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Petani/Pekebun', 'Kristen', 'MARTHA NAWA', 47, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Petani/Pekebun', 'Kristen', 'JUNIALDI ERIKSON HUKI', 'Terupulomi', '2005-06-12', '5320011206050001', '5320010902120080', 'Laki-laki', 18, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Mahasiswa', 'Kristen', '2024-02-29 22:53:54', '2024-02-29 23:06:27');
+INSERT INTO `suket_tidak_mampu` (`id_suket_tidak_mampu`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_ayah`, `umur_ayah`, `alamat_ayah`, `pekerjaan_ayah`, `agama_ayah`, `nama_ibu`, `umur_ibu`, `alamat_ibu`, `pekerjaan_ibu`, `agama_ibu`, `nama_anak`, `tempat_lahir_anak`, `tgl_lahir_anak`, `nik_anak`, `no_kk_anak`, `jk_anak`, `umur_anak`, `alamat_anak`, `pekerjaan_anak`, `agama_anak`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, '119/SKET. TM/ DS. DL/VII/2023', 'ADRIANA HILA KORE', 'Sekretaris Desa Delo', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'OKTOVIANUS KABO', 51, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Petani/Pekebun', 'Kristen', 'MARTHA NAWA', 47, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Petani/Pekebun', 'Kristen', 'JUNIALDI ERIKSON HUKI', 'Terupulomi', '2005-06-12', '5320011206050001', '5320010902120080', 'Laki-laki', 18, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Mahasiswa', 'Kristen', '2024-02-29 22:53:54', '2024-03-13 12:09:20');
 
 -- --------------------------------------------------------
 
@@ -408,6 +413,7 @@ CREATE TABLE `suket_usaha` (
   `id_suket_usaha` int(11) NOT NULL,
   `id_desa` int(11) DEFAULT NULL,
   `id_rt` int(11) DEFAULT NULL,
+  `id_user` int(11) NOT NULL DEFAULT 1,
   `no_surat` varchar(75) DEFAULT NULL,
   `nama_p1` varchar(75) DEFAULT NULL,
   `jabatan_p1` varchar(50) DEFAULT NULL,
@@ -427,8 +433,8 @@ CREATE TABLE `suket_usaha` (
 -- Dumping data untuk tabel `suket_usaha`
 --
 
-INSERT INTO `suket_usaha` (`id_suket_usaha`, `id_desa`, `id_rt`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `alamat_p2`, `agama_p2`, `pekerjaan_p2`, `ket_p2`, `created_at`, `updated_at`) VALUES
-(1, 1, 8, '200/DS.DL/SKET.U/XI/2023', 'DANIEL LOGO', 'Kepala Desa Delo', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'YOSINA RADJA MODJO', 'Menia', '1952-03-17', 'RT 010, RW 005, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', 'Petani/Pekebun', 'Pedagang Kaki Lima dengan jenis usaha hasil pertanian', '2024-03-01 07:48:01', '2024-03-01 11:51:43');
+INSERT INTO `suket_usaha` (`id_suket_usaha`, `id_desa`, `id_rt`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `alamat_p2`, `agama_p2`, `pekerjaan_p2`, `ket_p2`, `created_at`, `updated_at`) VALUES
+(1, 1, 8, 2, '200/DS.DL/SKET.U/XI/2023', 'DANIEL LOGO', 'Kepala Desa Delo', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'YOSINA RADJA MODJO', 'Menia', '1952-03-17', 'RT 010, RW 005, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', 'Petani/Pekebun', 'Pedagang Kaki Lima dengan jenis usaha hasil pertanian', '2024-03-01 07:48:01', '2024-03-13 12:10:03');
 
 -- --------------------------------------------------------
 
@@ -455,7 +461,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_user`, `id_role`, `id_active`, `en_user`, `token`, `name`, `image`, `email`, `password`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, NULL, NULL, 'VINI', 'default.svg', 'admin@gmail.com', '$2y$10$//KMATh3ibPoI3nHFp7x/u7vnAbo2WyUgmI4x0CVVrH8ajFhMvbjG', '2024-02-15 09:47:54', '2024-02-15 09:47:54');
+(1, 1, 1, NULL, NULL, 'VINI', 'default.svg', 'admin@gmail.com', '$2y$10$//KMATh3ibPoI3nHFp7x/u7vnAbo2WyUgmI4x0CVVrH8ajFhMvbjG', '2024-02-15 09:47:54', '2024-02-15 09:47:54'),
+(2, 2, 1, '2y10o8DEAuAAJWWJvLSk6rjtreElcfLRg3ePPxyaelFZDCZUYcZjiou', '848646', 'Netmedia Framecode', 'default.svg', 'netmediaframecode@gmail.com', '$2y$10$zmTfjlJeD1dcdhhcM1MWOeOWiwU85RH0ZceLFTTKCnQiCd9g8rb/O', '2024-03-13 11:41:31', '2024-03-13 11:42:04');
 
 --
 -- Trigger `users`
@@ -493,7 +500,8 @@ INSERT INTO `user_access_menu` (`id_access_menu`, `id_role`, `id_menu`) VALUES
 (2, 1, 2),
 (3, 1, 3),
 (4, 1, 4),
-(5, 1, 5);
+(5, 1, 5),
+(6, 2, 4);
 
 -- --------------------------------------------------------
 
@@ -532,7 +540,13 @@ INSERT INTO `user_access_sub_menu` (`id_access_sub_menu`, `id_role`, `id_sub_men
 (19, 1, 21),
 (21, 1, 23),
 (22, 1, 24),
-(23, 1, 25);
+(23, 1, 25),
+(24, 2, 16),
+(25, 2, 17),
+(26, 2, 18),
+(27, 2, 19),
+(28, 2, 20),
+(29, 2, 21);
 
 -- --------------------------------------------------------
 
@@ -573,7 +587,7 @@ CREATE TABLE `user_role` (
 
 INSERT INTO `user_role` (`id_role`, `role`) VALUES
 (1, 'Administrator'),
-(3, 'Penduduk');
+(2, 'Penduduk');
 
 -- --------------------------------------------------------
 
@@ -722,14 +736,16 @@ ALTER TABLE `rw`
 --
 ALTER TABLE `suket_domisili`
   ADD PRIMARY KEY (`id_suket_domisili`),
-  ADD KEY `id_desa` (`id_desa`);
+  ADD KEY `id_desa` (`id_desa`),
+  ADD KEY `id_user` (`id_user`);
 
 --
 -- Indeks untuk tabel `suket_kelahiran`
 --
 ALTER TABLE `suket_kelahiran`
   ADD PRIMARY KEY (`id_suket_kelahiran`),
-  ADD KEY `id_desa` (`id_desa`);
+  ADD KEY `id_desa` (`id_desa`),
+  ADD KEY `id_user` (`id_user`);
 
 --
 -- Indeks untuk tabel `suket_kematian`
@@ -737,6 +753,7 @@ ALTER TABLE `suket_kelahiran`
 ALTER TABLE `suket_kematian`
   ADD PRIMARY KEY (`id_suket_kematian`),
   ADD KEY `id_desa` (`id_desa`),
+  ADD KEY `id_user` (`id_user`),
   ADD KEY `id_desa_kematian` (`id_desa_kematian`);
 
 --
@@ -744,14 +761,16 @@ ALTER TABLE `suket_kematian`
 --
 ALTER TABLE `suket_non_kk`
   ADD PRIMARY KEY (`id_suket_non_kk`),
-  ADD KEY `id_desa` (`id_desa`);
+  ADD KEY `id_desa` (`id_desa`),
+  ADD KEY `id_user` (`id_user`);
 
 --
 -- Indeks untuk tabel `suket_tidak_mampu`
 --
 ALTER TABLE `suket_tidak_mampu`
   ADD PRIMARY KEY (`id_suket_tidak_mampu`),
-  ADD KEY `id_desa` (`id_desa`);
+  ADD KEY `id_desa` (`id_desa`),
+  ADD KEY `id_user` (`id_user`);
 
 --
 -- Indeks untuk tabel `suket_usaha`
@@ -759,7 +778,8 @@ ALTER TABLE `suket_tidak_mampu`
 ALTER TABLE `suket_usaha`
   ADD PRIMARY KEY (`id_suket_usaha`),
   ADD KEY `id_desa` (`id_desa`),
-  ADD KEY `id_rt` (`id_rt`);
+  ADD KEY `id_rt` (`id_rt`),
+  ADD KEY `id_user` (`id_user`);
 
 --
 -- Indeks untuk tabel `users`
@@ -915,19 +935,19 @@ ALTER TABLE `suket_usaha`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_access_menu`
 --
 ALTER TABLE `user_access_menu`
-  MODIFY `id_access_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_access_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_access_sub_menu`
 --
 ALTER TABLE `user_access_sub_menu`
-  MODIFY `id_access_sub_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id_access_sub_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_menu`
@@ -997,39 +1017,45 @@ ALTER TABLE `rw`
 -- Ketidakleluasaan untuk tabel `suket_domisili`
 --
 ALTER TABLE `suket_domisili`
-  ADD CONSTRAINT `suket_domisili_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `suket_domisili_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `suket_domisili_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `suket_kelahiran`
 --
 ALTER TABLE `suket_kelahiran`
-  ADD CONSTRAINT `suket_kelahiran_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `suket_kelahiran_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `suket_kelahiran_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `suket_kematian`
 --
 ALTER TABLE `suket_kematian`
   ADD CONSTRAINT `suket_kematian_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `suket_kematian_ibfk_2` FOREIGN KEY (`id_desa_kematian`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `suket_kematian_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `suket_kematian_ibfk_3` FOREIGN KEY (`id_desa_kematian`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `suket_non_kk`
 --
 ALTER TABLE `suket_non_kk`
-  ADD CONSTRAINT `suket_non_kk_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `suket_non_kk_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `suket_non_kk_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `suket_tidak_mampu`
 --
 ALTER TABLE `suket_tidak_mampu`
-  ADD CONSTRAINT `suket_tidak_mampu_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `suket_tidak_mampu_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `suket_tidak_mampu_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `suket_usaha`
 --
 ALTER TABLE `suket_usaha`
   ADD CONSTRAINT `suket_usaha_ibfk_1` FOREIGN KEY (`id_desa`) REFERENCES `desa` (`id_desa`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `suket_usaha_ibfk_2` FOREIGN KEY (`id_rt`) REFERENCES `rt` (`id_rt`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `suket_usaha_ibfk_2` FOREIGN KEY (`id_rt`) REFERENCES `rt` (`id_rt`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `suket_usaha_ibfk_3` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `users`
