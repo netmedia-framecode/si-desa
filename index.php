@@ -27,7 +27,7 @@
             </div>
             <div class="col-md-7">
               <div class="img-box">
-                <img src="assets/img/header.png" alt="">
+                <img src="assets/img/header_new.jpeg" alt="">
               </div>
             </div>
           </div>

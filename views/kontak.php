@@ -16,6 +16,7 @@ require_once("../templates/views_top.php"); ?>
         <table class="table table-bordered text-dark" id="dataTable" width="100%" cellspacing="0">
           <thead>
             <tr>
+              <th class="text-center">Tanggal</th>
               <th class="text-center">Pengirim</th>
               <th class="text-center">Pesan</th>
               <th class="text-center" style="width: 200px;">Aksi</th>
@@ -23,6 +24,7 @@ require_once("../templates/views_top.php"); ?>
           </thead>
           <tfoot>
             <tr>
+              <th class="text-center">Tanggal</th>
               <th class="text-center">Pengirim</th>
               <th class="text-center">Pesan</th>
               <th class="text-center">Aksi</th>
@@ -31,6 +33,8 @@ require_once("../templates/views_top.php"); ?>
           <tbody>
             <?php foreach ($views_kontak as $data) { ?>
               <tr>
+                <td class="text-center"><?php $created_at = date_create($data["created_at"]);
+                    echo date_format($created_at, "d M Y h.i a"); ?></td>
                 <td>
                   <?= $data['username'] ?><br>
                   <a href="mailto:<?= $data['email'] ?>" target="_blank"><?= $data['email'] ?></a><br>

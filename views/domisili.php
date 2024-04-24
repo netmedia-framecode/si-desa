@@ -39,11 +39,11 @@ require_once("../templates/views_top.php"); ?>
               <p>Yang bertandatangan di bawah ini:</p>
               <div class="form-group">
                 <label for="nama_p1">Nama</label>
-                <input type="text" name="nama_p1" class="form-control" id="nama_p1" minlength="3" required>
+                <input type="text" name="nama_p1" value="<?= $name ?>" class="form-control" id="nama_p1" minlength="3" required>
               </div>
               <div class="form-group">
                 <label for="jabatan_p1">Jabatan</label>
-                <input type="text" name="jabatan_p1" class="form-control" id="jabatan_p1" minlength="3" required>
+                <input type="text" name="jabatan_p1" value="<?= $role ?>" class="form-control" id="jabatan_p1" minlength="3" required>
               </div>
               <div class="form-group">
                 <label for="jk_p1">Jenis Kelamin</label>
@@ -159,6 +159,11 @@ require_once("../templates/views_top.php"); ?>
                 <label for="ket_p2">Keterangan Domilisi</label>
                 <textarea class="form-control" name="ket_p2" rows="3">akan ...</textarea>
                 <small>Contoh: akan melanjutkan studi ke Kupang di SMK Negeri 3 Kupang</small>
+              </div>
+              <hr>
+              <div class="form-group">
+                <label for="email">Email Pemohon</label>
+                <input type="email" name="email" class="form-control" id="email" minlength="3" required>
               </div>
             </div>
             <div class="modal-footer justify-content-center border-top-0">

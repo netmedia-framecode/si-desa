@@ -16,13 +16,13 @@ function smtp_mail($to, $subject, $message, $from_name, $from, $cc, $bcc, $debug
   $mail->ClearCCs();
   $mail->ClearBCCs();
   $mail->SMTPAuth         = true;
-  $mail->Host             = "tugasakhir.my.id;103.131.51.14";
+  $mail->Host             = "tugasakhir.my.id;103.131.51.15";
   $mail->Port             = 587;
   $mail->SMTPSecure       = "tls";
   $mail->Username         = "no-reply@tugasakhir.my.id";
   $mail->Password         = "Netmedia040700_";
   $default_email_from     = "no-reply@tugasakhir.my.id";
-  $default_email_from_name = "Sistem Informasi Desa";
+  $default_email_from_name = "Sistem Pelayanan Kependudukan Desa Delo";
   if (empty($from)) $mail->From = $default_email_from;
   else $mail->From = $from;
   if (empty($from_name)) $mail->FromName = $default_email_from_name;

@@ -8,7 +8,7 @@ require_once("functions.php");
 
 $messageTypes = ["success", "info", "warning", "danger", "dark"];
 
-$baseURL = "http://$_SERVER[HTTP_HOST]/apps/tugas/si_desa/";
+$baseURL = "http://$_SERVER[HTTP_HOST]/si_desa/";
 $name_website = "Sistem Informasi Desa";
 
 $select_auth = "SELECT * FROM auth";
