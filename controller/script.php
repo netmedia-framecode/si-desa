@@ -8,7 +8,12 @@ require_once("functions.php");
 
 $messageTypes = ["success", "info", "warning", "danger", "dark"];
 
-$baseURL = "http://$_SERVER[HTTP_HOST]/si_desa/";
+$baseURL = "http://$_SERVER[HTTP_HOST]/apps/tugas/si_desa/";
+$hostname = $_SERVER['HTTP_HOST'];
+$port = $_SERVER['SERVER_PORT'];
+if (strpos($hostname, 'apps.test') !== false && $port == 8080) {
+  $baseURL = str_replace('/apps/', '/', $baseURL);
+}
 $name_website = "Sistem Informasi Desa";
 
 $select_auth = "SELECT * FROM auth";
@@ -53,6 +58,23 @@ if (isset($_POST['add_kontak'])) {
     }
   }
 }
+$rt = "SELECT rt.*, rw.rw, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+  FROM rt 
+  JOIN rw ON rt.id_rw=rw.id_rw
+  JOIN desa ON rw.id_desa=desa.id_desa
+  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+";
+$views_rt = mysqli_query($conn, $rt);
+
+$desa = "SELECT desa.*, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+  FROM desa 
+  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+";
+$views_desa = mysqli_query($conn, $desa);
 
 if (!isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
   if (isset($_SESSION["project_sistem_informasi_desa"]["time_message"]) && (time() - $_SESSION["project_sistem_informasi_desa"]["time_message"]) > 2) {
@@ -328,7 +350,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
 
   $select_user_access_menu = "SELECT user_access_menu.*, user_role.role, user_menu.menu
                                 FROM user_access_menu 
-                                JOIN user_role ON user_access_menu.id_role=.user_role.id_role 
+                                JOIN user_role ON user_access_menu.id_role=user_role.id_role 
                                 JOIN user_menu ON user_access_menu.id_menu=user_menu.id_menu
                               ";
   $views_user_access_menu = mysqli_query($conn, $select_user_access_menu);
@@ -376,7 +398,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
 
   $select_user_access_sub_menu = "SELECT user_access_sub_menu.*, user_role.role, user_sub_menu.title
                                 FROM user_access_sub_menu 
-                                JOIN user_role ON user_access_sub_menu.id_role=.user_role.id_role 
+                                JOIN user_role ON user_access_sub_menu.id_role=user_role.id_role 
                                 JOIN user_sub_menu ON user_access_sub_menu.id_sub_menu=user_sub_menu.id_sub_menu
                               ";
   $views_user_access_sub_menu = mysqli_query($conn, $select_user_access_sub_menu);
@@ -548,13 +570,6 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $desa = "SELECT desa.*, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-    FROM desa 
-    JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-    JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-    JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ";
-  $views_desa = mysqli_query($conn, $desa);
   if (isset($_POST["add_desa"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
@@ -637,15 +652,6 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $rt = "SELECT rt.*, rw.rw, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-    FROM rt 
-    JOIN rw ON rt.id_rw=rw.id_rw
-    JOIN desa ON rw.id_desa=desa.id_desa
-    JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-    JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-    JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ";
-  $views_rt = mysqli_query($conn, $rt);
   if (isset($_POST["add_rt"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
@@ -684,20 +690,32 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
   }
 
   // ==> Surat Keterangan
-  $suket_domisili = "SELECT suket_domisili.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-  FROM suket_domisili 
-  JOIN desa ON suket_domisili.id_desa=desa.id_desa
-  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ORDER BY suket_domisili.id_suket_domisili DESC
-  ";
+  if ($id_role == 1) {
+    $suket_domisili = "SELECT suket_domisili.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_domisili 
+      JOIN desa ON suket_domisili.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      ORDER BY suket_domisili.id_suket_domisili DESC
+    ";
+  } else if ($id_role == 2) {
+    $suket_domisili = "SELECT suket_domisili.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_domisili 
+      JOIN desa ON suket_domisili.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      WHERE suket_domisili.id_user=$id_user
+      ORDER BY suket_domisili.id_suket_domisili DESC
+    ";
+  }
   $views_suket_domisili = mysqli_query($conn, $suket_domisili);
   if (isset($_POST['add_suket_domisili'])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (domisili($conn, $validated_post, $action = 'insert') > 0) {
+    if (domisili($conn, $validated_post, $action = 'insert', $id_user, $id_role) > 0) {
       $message = "Surat domisili berhasil dibuat.";
       $message_type = "success";
       alert($message, $message_type);
@@ -709,7 +727,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (domisili($conn, $validated_post, $action = 'update') > 0) {
+    if (domisili($conn, $validated_post, $action = 'update', $id_user, $id_role) > 0) {
       $message = "Surat domisili berhasil diubah.";
       $message_type = "success";
       alert($message, $message_type);
@@ -721,7 +739,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (domisili($conn, $validated_post, $action = 'delete') > 0) {
+    if (domisili($conn, $validated_post, $action = 'delete', $id_user, $id_role) > 0) {
       $message = "Surat domisili berhasil dihapus.";
       $message_type = "success";
       alert($message, $message_type);
@@ -730,20 +748,32 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $suket_kelahiran = "SELECT suket_kelahiran.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-  FROM suket_kelahiran 
-  JOIN desa ON suket_kelahiran.id_desa=desa.id_desa
-  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ORDER BY suket_kelahiran.id_suket_kelahiran DESC
-  ";
+  if ($id_role == 1) {
+    $suket_kelahiran = "SELECT suket_kelahiran.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_kelahiran 
+      JOIN desa ON suket_kelahiran.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      ORDER BY suket_kelahiran.id_suket_kelahiran DESC
+    ";
+  } else if ($id_role == 2) {
+    $suket_kelahiran = "SELECT suket_kelahiran.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_kelahiran 
+      JOIN desa ON suket_kelahiran.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      WHERE suket_kelahiran.id_user=$id_user
+      ORDER BY suket_kelahiran.id_suket_kelahiran DESC
+    ";
+  }
   $views_suket_kelahiran = mysqli_query($conn, $suket_kelahiran);
   if (isset($_POST['add_suket_kelahiran'])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (kelahiran($conn, $validated_post, $action = 'insert') > 0) {
+    if (kelahiran($conn, $validated_post, $action = 'insert', $id_user, $id_role) > 0) {
       $message = "Surat kelahiran berhasil dibuat.";
       $message_type = "success";
       alert($message, $message_type);
@@ -755,7 +785,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (kelahiran($conn, $validated_post, $action = 'update') > 0) {
+    if (kelahiran($conn, $validated_post, $action = 'update', $id_user, $id_role) > 0) {
       $message = "Surat kelahiran berhasil diubah.";
       $message_type = "success";
       alert($message, $message_type);
@@ -767,7 +797,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (kelahiran($conn, $validated_post, $action = 'delete') > 0) {
+    if (kelahiran($conn, $validated_post, $action = 'delete', $id_user, $id_role) > 0) {
       $message = "Surat kelahiran berhasil dihapus.";
       $message_type = "success";
       alert($message, $message_type);
@@ -776,20 +806,32 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $suket_kematian = "SELECT suket_kematian.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-  FROM suket_kematian 
-  JOIN desa ON suket_kematian.id_desa=desa.id_desa
-  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ORDER BY suket_kematian.id_suket_kematian DESC
-  ";
+  if ($id_role == 1) {
+    $suket_kematian = "SELECT suket_kematian.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_kematian 
+      JOIN desa ON suket_kematian.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      ORDER BY suket_kematian.id_suket_kematian DESC
+    ";
+  } else if ($id_role == 2) {
+    $suket_kematian = "SELECT suket_kematian.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_kematian 
+      JOIN desa ON suket_kematian.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      WHERE suket_kematian.id_user=$id_user
+      ORDER BY suket_kematian.id_suket_kematian DESC
+    ";
+  }
   $views_suket_kematian = mysqli_query($conn, $suket_kematian);
   if (isset($_POST['add_suket_kematian'])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (kematian($conn, $validated_post, $action = 'insert') > 0) {
+    if (kematian($conn, $validated_post, $action = 'insert', $id_user, $id_role) > 0) {
       $message = "Surat kematian berhasil dibuat.";
       $message_type = "success";
       alert($message, $message_type);
@@ -801,7 +843,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (kematian($conn, $validated_post, $action = 'update') > 0) {
+    if (kematian($conn, $validated_post, $action = 'update', $id_user, $id_role) > 0) {
       $message = "Surat kematian berhasil diubah.";
       $message_type = "success";
       alert($message, $message_type);
@@ -813,7 +855,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (kematian($conn, $validated_post, $action = 'delete') > 0) {
+    if (kematian($conn, $validated_post, $action = 'delete', $id_user, $id_role) > 0) {
       $message = "Surat kematian berhasil dihapus.";
       $message_type = "success";
       alert($message, $message_type);
@@ -822,20 +864,32 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $suket_non_kk = "SELECT suket_non_kk.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-  FROM suket_non_kk 
-  JOIN desa ON suket_non_kk.id_desa=desa.id_desa
-  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ORDER BY suket_non_kk.id_suket_non_kk DESC
-  ";
+  if ($id_role == 1) {
+    $suket_non_kk = "SELECT suket_non_kk.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_non_kk 
+      JOIN desa ON suket_non_kk.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      ORDER BY suket_non_kk.id_suket_non_kk DESC
+    ";
+  } else if ($id_role == 2) {
+    $suket_non_kk = "SELECT suket_non_kk.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_non_kk 
+      JOIN desa ON suket_non_kk.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      WHERE suket_non_kk.id_user=$id_user
+      ORDER BY suket_non_kk.id_suket_non_kk DESC
+    ";
+  }
   $views_suket_non_kk = mysqli_query($conn, $suket_non_kk);
   if (isset($_POST['add_suket_non_kk'])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (non_kk($conn, $validated_post, $action = 'insert') > 0) {
+    if (non_kk($conn, $validated_post, $action = 'insert', $id_user, $id_role) > 0) {
       $message = "Surat belum memiliki kk berhasil dibuat.";
       $message_type = "success";
       alert($message, $message_type);
@@ -847,7 +901,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (non_kk($conn, $validated_post, $action = 'update') > 0) {
+    if (non_kk($conn, $validated_post, $action = 'update', $id_user, $id_role) > 0) {
       $message = "Surat belum memiliki kk berhasil diubah.";
       $message_type = "success";
       alert($message, $message_type);
@@ -859,7 +913,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (non_kk($conn, $validated_post, $action = 'delete') > 0) {
+    if (non_kk($conn, $validated_post, $action = 'delete', $id_user, $id_role) > 0) {
       $message = "Surat belum memiliki kk berhasil dihapus.";
       $message_type = "success";
       alert($message, $message_type);
@@ -868,20 +922,32 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $suket_tidak_mampu = "SELECT suket_tidak_mampu.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-  FROM suket_tidak_mampu 
-  JOIN desa ON suket_tidak_mampu.id_desa=desa.id_desa
-  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ORDER BY suket_tidak_mampu.id_suket_tidak_mampu DESC
-  ";
+  if ($id_role == 1) {
+    $suket_tidak_mampu = "SELECT suket_tidak_mampu.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_tidak_mampu 
+      JOIN desa ON suket_tidak_mampu.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      ORDER BY suket_tidak_mampu.id_suket_tidak_mampu DESC
+    ";
+  } else if ($id_role == 2) {
+    $suket_tidak_mampu = "SELECT suket_tidak_mampu.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_tidak_mampu 
+      JOIN desa ON suket_tidak_mampu.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      WHERE suket_tidak_mampu.id_user=$id_user
+      ORDER BY suket_tidak_mampu.id_suket_tidak_mampu DESC
+    ";
+  }
   $views_suket_tidak_mampu = mysqli_query($conn, $suket_tidak_mampu);
   if (isset($_POST['add_suket_tidak_mampu'])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (tidak_mampu($conn, $validated_post, $action = 'insert') > 0) {
+    if (tidak_mampu($conn, $validated_post, $action = 'insert', $id_user, $id_role) > 0) {
       $message = "Surat tidak mampu berhasil dibuat.";
       $message_type = "success";
       alert($message, $message_type);
@@ -893,7 +959,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (tidak_mampu($conn, $validated_post, $action = 'update') > 0) {
+    if (tidak_mampu($conn, $validated_post, $action = 'update', $id_user, $id_role) > 0) {
       $message = "Surat tidak mampu berhasil diubah.";
       $message_type = "success";
       alert($message, $message_type);
@@ -905,7 +971,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (tidak_mampu($conn, $validated_post, $action = 'delete') > 0) {
+    if (tidak_mampu($conn, $validated_post, $action = 'delete', $id_user, $id_role) > 0) {
       $message = "Surat tidak mampu berhasil dihapus.";
       $message_type = "success";
       alert($message, $message_type);
@@ -914,20 +980,32 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
   }
 
-  $suket_usaha = "SELECT suket_usaha.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
-  FROM suket_usaha 
-  JOIN desa ON suket_usaha.id_desa=desa.id_desa
-  JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
-  JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
-  JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
-  ORDER BY suket_usaha.id_suket_usaha DESC
-  ";
+  if ($id_role == 1) {
+    $suket_usaha = "SELECT suket_usaha.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_usaha 
+      JOIN desa ON suket_usaha.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      ORDER BY suket_usaha.id_suket_usaha DESC
+    ";
+  } else if ($id_role == 2) {
+    $suket_usaha = "SELECT suket_usaha.*, desa.desa, kecamatan.kecamatan, kabupaten.kabupaten, provinsi.provinsi 
+      FROM suket_usaha 
+      JOIN desa ON suket_usaha.id_desa=desa.id_desa
+      JOIN kecamatan ON desa.id_kecamatan=kecamatan.id_kecamatan
+      JOIN kabupaten ON kecamatan.id_kabupaten=kabupaten.id_kabupaten
+      JOIN provinsi ON kabupaten.id_provinsi=provinsi.id_provinsi
+      WHERE suket_usaha.id_user=$id_user
+      ORDER BY suket_usaha.id_suket_usaha DESC
+    ";
+  }
   $views_suket_usaha = mysqli_query($conn, $suket_usaha);
   if (isset($_POST['add_suket_usaha'])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (usaha($conn, $validated_post, $action = 'insert') > 0) {
+    if (usaha($conn, $validated_post, $action = 'insert', $id_user, $id_role) > 0) {
       $message = "Surat usaha berhasil dibuat.";
       $message_type = "success";
       alert($message, $message_type);
@@ -939,7 +1017,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (usaha($conn, $validated_post, $action = 'update') > 0) {
+    if (usaha($conn, $validated_post, $action = 'update', $id_user, $id_role) > 0) {
       $message = "Surat usaha berhasil diubah.";
       $message_type = "success";
       alert($message, $message_type);
@@ -951,7 +1029,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     $validated_post = array_map(function ($value) use ($conn) {
       return valid($conn, $value);
     }, $_POST);
-    if (usaha($conn, $validated_post, $action = 'delete') > 0) {
+    if (usaha($conn, $validated_post, $action = 'delete', $id_user, $id_role) > 0) {
       $message = "Surat usaha berhasil dihapus.";
       $message_type = "success";
       alert($message, $message_type);

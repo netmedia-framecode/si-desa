@@ -11,7 +11,7 @@ if (mysqli_num_rows($views_menu_surat_keterangan_all) > 0) { ?>
       <div class="row">
         <?php while ($data = mysqli_fetch_assoc($views_menu_surat_keterangan_all)) { ?>
           <div class="col-md-6 col-lg-4">
-            <a href="surat-terpilih?id=<?= $data['id_sub_menu'] ?>">
+            <a href="auth/register?id=<?= $data['id_sub_menu'] ?>&obj=<?= $data['title']?>">
               <div class="box shadow">
                 <div class="img-box">
                   <img src="assets/img/letter.png" alt="">
@@ -21,7 +21,7 @@ if (mysqli_num_rows($views_menu_surat_keterangan_all) > 0) { ?>
                     <?= $data['title'] ?>
                   </h5>
                   <div class="price_box justify-content-start">
-                    <a class="btn btn-primary text-white shadow" href="surat-terpilih?id=<?= $data['id_sub_menu'] ?>">
+                    <a class="btn btn-primary text-white shadow" href="auth/register?id=<?= $data['id_sub_menu'] ?>&obj=<?= $data['title']?>">
                       Pilih
                     </a>
                   </div>

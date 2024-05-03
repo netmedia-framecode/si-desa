@@ -61,7 +61,7 @@
           <td><?= $data['agama_p2'] ?></td>
           <td><?= $data['pekerjaan_p2'] ?></td>
           <td class="text-center">
-            <?php if ($id_role == 1) { ?>
+            <?php if (empty($data['no_surat'])) { ?>
               <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#ubah<?= $data['id_suket_domisili'] ?>">
                 <i class="bi bi-pencil-square"></i> Ubah
               </button>
@@ -71,7 +71,7 @@
             <?php } ?>
             <a href="export-domisili?id=<?= $data['id_suket_domisili'] ?>" target="_blank" class="btn btn-primary btn-sm" rel="noopener noreferrer"><i class="bi bi-printer"></i> Cetak</a>
 
-            <?php if ($id_role == 1) { ?>
+            <?php if (empty($data['no_surat'])) { ?>
               <div class="modal fade" id="ubah<?= $data['id_suket_domisili'] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                   <div class="modal-content">
@@ -83,45 +83,54 @@
                     </div>
                     <form action="" method="post">
                       <input type="hidden" name="id_suket_domisili" value="<?= $data['id_suket_domisili'] ?>">
-                      <input type="hidden" name="no_suratOld" value="<?= $data['no_surat'] ?>">
+                      <input type="hidden" name="email" value="<?= $data['email'] ?>">
                       <div class="modal-body">
-                        <div class="form-group">
-                          <label for="no_surat">Nomor</label>
-                          <input type="text" name="no_surat" value="<?= $data['no_surat'] ?>" class="form-control" id="no_surat" minlength="3" required>
-                        </div>
-                        <hr>
-                        <p>Yang bertandatangan di bawah ini:</p>
-                        <div class="form-group">
-                          <label for="nama_p1">Nama</label>
-                          <input type="text" name="nama_p1" value="<?= $data['nama_p1'] ?>" class="form-control" id="nama_p1" minlength="3" required>
-                        </div>
-                        <div class="form-group">
-                          <label for="jabatan_p1">Jabatan</label>
-                          <input type="text" name="jabatan_p1" value="<?= $data['jabatan_p1'] ?>" class="form-control" id="jabatan_p1" minlength="3" required>
-                        </div>
-                        <div class="form-group">
-                          <label for="jk_p1">Jenis Kelamin</label>
-                          <select name="jk_p1" class="form-control" id="jk_p1" required>
-                            <?php $jk_p1 = $data['jk_p1'];
-                            foreach ($jenis_kelamin as $jk) {
-                              $selected = ($jk == $jk_p1) ? 'selected' : ''; ?>
-                              <option value="<?= $jk ?>" <?= $selected ?>><?= $jk ?></option>
-                            <?php } ?>
-                          </select>
-                        </div>
-                        <div class="form-group">
-                          <label for="alamat_p1">Alamat</label>
-                          <select name="alamat_p1" class="form-control" id="alamat_p1" required>
-                            <?php $alamat_p1 = $data['alamat_p1'];
-                            foreach ($views_rt as $data_rt) {
-                              $selected = ($alamat_p1 == "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi']) ? 'selected' : ''; ?>
-                              <option value="<?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>" <?= $selected ?>>
-                                <?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>
-                              </option>
-                            <?php } ?>
-                          </select>
-                        </div>
-                        <hr>
+                        <?php if ($id_role == 1) { ?>
+                          <input type="hidden" name="no_suratOld" value="<?= $data['no_surat'] ?>">
+                          <div class="form-group">
+                            <label for="no_surat">Nomor</label>
+                            <input type="text" name="no_surat" value="<?= $data['no_surat'] ?>" class="form-control" id="no_surat" minlength="3" required>
+                          </div>
+                          <hr>
+                          <p>Yang bertandatangan di bawah ini:</p>
+                          <div class="form-group">
+                            <label for="nama_p1">Nama</label>
+                            <input type="text" name="nama_p1" value="<?= $name ?>" class="form-control" id="nama_p1" minlength="3" required>
+                          </div>
+                          <div class="form-group">
+                            <label for="jabatan_p1">Jabatan</label>
+                            <input type="text" name="jabatan_p1" value="<?= $role ?>" class="form-control" id="jabatan_p1" minlength="3" required>
+                          </div>
+                          <div class="form-group">
+                            <label for="jk_p1">Jenis Kelamin</label>
+                            <select name="jk_p1" class="form-control" id="jk_p1" required>
+                              <?php $jk_p1 = $data['jk_p1'];
+                              foreach ($jenis_kelamin as $jk) {
+                                $selected = ($jk == $jk_p1) ? 'selected' : ''; ?>
+                                <option value="<?= $jk ?>" <?= $selected ?>><?= $jk ?></option>
+                              <?php } ?>
+                            </select>
+                          </div>
+                          <div class="form-group">
+                            <label for="alamat_p1">Alamat</label>
+                            <select name="alamat_p1" class="form-control" id="alamat_p1" required>
+                              <?php $alamat_p1 = $data['alamat_p1'];
+                              foreach ($views_rt as $data_rt) {
+                                $selected = ($alamat_p1 == "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi']) ? 'selected' : ''; ?>
+                                <option value="<?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>" <?= $selected ?>>
+                                  <?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>
+                                </option>
+                              <?php } ?>
+                            </select>
+                          </div>
+                          <hr>
+                        <?php } else if ($id_role == 2) { ?>
+                          <input type="hidden" name="no_surat" value="<?= $data['no_surat'] ?>">
+                          <input type="hidden" name="nama_p1" value="<?= $data['nama_p1'] ?>">
+                          <input type="hidden" name="jabatan_p1" value="<?= $data['jabatan_p1'] ?>">
+                          <input type="hidden" name="jk_p1" value="<?= $data['jk_p1'] ?>">
+                          <input type="hidden" name="alamat_p1" value="<?= $data['alamat_p1'] ?>">
+                        <?php } ?>
                         <p>Menerangkan dengan sebenarnya bahwa :</p>
                         <div class="form-group">
                           <label for="nama_p2">Nama</label>
@@ -208,10 +217,6 @@
                         <p>sejak tanggal:</p>
                         <div class="form-group">
                           <input type="date" name="sejak_tgl_p2" value="<?= $data['sejak_tgl_p2'] ?>" class="form-control" id="sejak_tgl_p2" minlength="3" required>
-                        </div>
-                        <p>dan pada hari ini tanggal:</p>
-                        <div class="form-group">
-                          <input type="date" name="tgl_surat_p2" value="<?= $data['tgl_surat_p2'] ?>" class="form-control" id="tgl_surat_p2" minlength="3" required>
                         </div>
                         <div class="form-group">
                           <label for="ket_p2">Keterangan Domilisi</label>

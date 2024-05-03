@@ -8,7 +8,7 @@ require_once("../templates/views_top.php"); ?>
   <!-- Page Heading -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800"><?= $_SESSION["project_sistem_informasi_desa"]["name_page"] ?></h1>
-    <?php if ($id_role == 1) { ?>
+    <?php if ($id_role == 2) { ?>
       <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#tambah"><i class="bi bi-plus-lg"></i> Tambah</a>
     <?php } ?>
   </div>
@@ -19,7 +19,7 @@ require_once("../templates/views_top.php"); ?>
     </div>
   </div>
 
-  <?php if ($id_role == 1) { ?>
+  <?php if ($id_role == 2) { ?>
     <div class="modal fade" id="tambah" tabindex="-1" aria-labelledby="tambahLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -31,33 +31,6 @@ require_once("../templates/views_top.php"); ?>
           </div>
           <form action="" method="post">
             <div class="modal-body">
-              <div class="form-group">
-                <label for="no_surat">Nomor</label>
-                <input type="text" name="no_surat" class="form-control" id="no_surat" minlength="3" required>
-              </div>
-              <hr>
-              <p>Yang bertandatangan di bawah ini:</p>
-              <div class="form-group">
-                <label for="nama_p1">Nama</label>
-                <input type="text" name="nama_p1" value="<?= $name ?>" class="form-control" id="nama_p1" minlength="3" required>
-              </div>
-              <div class="form-group">
-                <label for="jabatan_p1">Jabatan</label>
-                <input type="text" name="jabatan_p1" value="<?= $role ?>" class="form-control" id="jabatan_p1" minlength="3" required>
-              </div>
-              <div class="form-group">
-                <label for="alamat_p1">Alamat</label>
-                <select name="alamat_p1" class="form-control" id="alamat_p1" required>
-                  <option value="" disabled selected>Pilih Alamat</option>
-                  <?php foreach ($views_desa as $data_desa) { ?>
-                    <option value="<?= "Desa " . $data_desa['desa'] . ", Kec. " . $data_desa['kecamatan'] . ", Kab. " . $data_desa['kabupaten'] . ", Prov. " . $data_desa['provinsi'] ?>">
-                      <?= "Desa " . $data_desa['desa'] . ", Kec. " . $data_desa['kecamatan'] . ", Kab. " . $data_desa['kabupaten'] . ", Prov. " . $data_desa['provinsi'] ?>
-                    </option>
-                  <?php } ?>
-                </select>
-              </div>
-              <hr>
-              <p>Menerangkan dengan sebenarnya bahwa :</p>
               <div class="form-group">
                 <label for="nama_p2">Nama</label>
                 <input type="text" name="nama_p2" class="form-control" id="nama_p2" minlength="3" required>

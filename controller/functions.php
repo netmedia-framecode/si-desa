@@ -1,4 +1,35 @@
 <?php
+
+function handle_error($errno, $errstr, $errfile, $errline)
+{
+  // Create error log file path based on the file where the error occurred
+  $errorLog = dirname(__FILE__) . '/error_log.log'; // Error log file location within the project folder
+
+  // Format error message with additional information
+  $error_message = "[" . date("Y-m-d H:i:s") . "] Error [$errno]: $errstr in $errfile on line $errline" . PHP_EOL;
+
+  // Attempt to open the error log file in append mode, creating it if it doesn't exist
+  $file_handle = fopen($errorLog, 'a');
+  if ($file_handle !== false) {
+    // Write error message to the log file
+    fwrite($file_handle, $error_message);
+    // Close the file handle
+    fclose($file_handle);
+  }
+
+  // Save error message in session
+  $_SESSION['error_message'] = $error_message;
+
+  // Redirect user back to the same page only if there is no error
+  if (!isset($_SESSION['error_flag'])) {
+    // Set error flag to prevent infinite redirection loop
+    $_SESSION['error_flag'] = true;
+    // Redirect user back to the same page
+    header("Location: {$_SERVER['REQUEST_URI']}");
+    exit(); // Stop further execution
+  }
+}
+
 function valid($conn, $value)
 {
   $valid = htmlspecialchars(addslashes(trim(mysqli_real_escape_string($conn, $value))));
@@ -91,6 +122,14 @@ if (!isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
           alert($message, $message_type);
           return false;
         } else {
+          $checkIDAkun = "SELECT * FROM users ORDER BY id_user DESC LIMIT 1";
+          $takeIDAkun = mysqli_query($conn, $checkIDAkun);
+          if (mysqli_num_rows($takeIDAkun) > 0) {
+            $data_akun = mysqli_fetch_assoc($takeIDAkun);
+            $id_user = $data_akun['id_user'] + 1;
+          } else {
+            $id_user = 1;
+          }
           $password = password_hash($data['password'], PASSWORD_DEFAULT);
           $token = generateToken();
           $en_user = password_hash($token, PASSWORD_DEFAULT);
@@ -234,12 +273,92 @@ if (!isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
           </html>";
           smtp_mail($to, $subject, $message, "", "", 0, 0, true);
           $_SESSION['data_auth'] = ['en_user' => $en_user];
-          $sql = "INSERT INTO users(en_user,token,name,email,password) VALUES('$en_user','$token','$data[name]','$data[email]','$password')";
+          $sql_account = "INSERT INTO users(id_user,en_user,token,name,email,password) VALUES('$id_user','$en_user','$token','$data[name]','$data[email]','$password')";
+          mysqli_query($conn, $sql_account);
+          if (isset($data['obj'])) {
+            if ($data['obj'] == "Domisili") {
+              if ($data['pekerjaan_p2'] == "Lainnya") {
+                $pekerjaan_p2 = $data['pekerjaan_p2_other'];
+              } else {
+                $pekerjaan_p2 = $data['pekerjaan_p2'];
+              }
+              $sql_suket = "INSERT INTO suket_domisili(id_user,id_desa,nama_p2,tempat_lahir_p2,tgl_lahir_p2,jk_p2,alamat_p2,agama_p2,pekerjaan_p2,sejak_tgl_p2,tgl_surat_p2,ket_p2,email) VALUES('$id_user','$data[id_desa]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[jk_p2]','$data[alamat_p2]','$data[agama_p2]','$pekerjaan_p2','$data[sejak_tgl_p2]','$data[tgl_surat_p2]','$data[ket_p2]','$data[email]')";
+              mysqli_query($conn, $sql_suket);
+            } else if ($data['obj'] == "Kelahiran") {
+              if (empty($data['pekerjaan_ayah'])) {
+                $pekerjaan_ayah = "";
+              } else if ($data['pekerjaan_ayah'] == "Lainnya") {
+                $pekerjaan_ayah = $data['pekerjaan_ayah_other'];
+              } else {
+                $pekerjaan_ayah = $data['pekerjaan_ayah'];
+              }
+              if (empty($data['pekerjaan_ibu'])) {
+                $pekerjaan_ibu = "";
+              } else if ($data['pekerjaan_ibu'] == "Lainnya") {
+                $pekerjaan_ibu = $data['pekerjaan_ibu_other'];
+              } else {
+                $pekerjaan_ibu = $data['pekerjaan_ibu'];
+              }
+              if (empty($data['alamat_ayah'])) {
+                $alamat_ayah = "";
+              } else {
+                $alamat_ayah = $data['alamat_ayah'];
+              }
+              if (empty($data['alamat_ibu'])) {
+                $alamat_ibu = "";
+              } else {
+                $alamat_ibu = $data['alamat_ibu'];
+              }
+              $sql_suket = "INSERT INTO suket_kelahiran(id_user,id_desa,nama_p2,jk_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,anak_ke_p2,nama_ayah,umur_ayah,alamat_ayah,pekerjaan_ayah,nama_ibu,umur_ibu,alamat_ibu,pekerjaan_ibu,email) VALUES('$id_user','$data[id_desa]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[alamat_p1]','$data[nama_p2]','$data[jk_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[alamat_p2]','$data[anak_ke_p2]','$data[nama_ayah]','$data[umur_ayah]','$alamat_ayah','$pekerjaan_ayah','$data[nama_ibu]','$data[umur_ibu]','$alamat_ibu','$pekerjaan_ibu','$data[email]')";
+              mysqli_query($conn, $sql_suket);
+            } else if ($data['obj'] == "Kematian") {
+              if ($data['pekerjaan_p2'] == "Lainnya") {
+                $pekerjaan_p2 = $data['pekerjaan_p2_other'];
+              } else {
+                $pekerjaan_p2 = $data['pekerjaan_p2'];
+              }
+              $sql_suket = "INSERT INTO suket_kematian(id_user,id_desa,id_desa_kematian,nama_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,tgl_kematian,waktu_kematian,pekerjaan_p2,email) VALUES('$id_user','$data[id_desa]','$data[id_desa_kematian]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[jk_p2]','$data[alamat_p2]','$data[tgl_kematian]','$data[waktu_kematian]','$pekerjaan_p2','$data[email]')";
+              mysqli_query($conn, $sql_suket);
+            } else if ($data['obj'] == "Belum Memiliki KK") {
+              if ($data['pekerjaan_p2'] == "Lainnya") {
+                $pekerjaan_p2 = $data['pekerjaan_p2_other'];
+              } else {
+                $pekerjaan_p2 = $data['pekerjaan_p2'];
+              }
+              $sql_suket = "INSERT INTO suket_non_kk(id_user,id_desa,nama_p2,jk_p2,tempat_lahir_p2,tgl_lahir_p2,pekerjaan_p2,agama_p2,kewarganegaraan,alamat_p2,email) VALUES('$id_user','$data[id_desa]','$data[nama_p2]','$data[jk_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$pekerjaan_p2','$data[agama_p2]','$data[kewarganegaraan]','$data[alamat_p2]','$data[email]')";
+              mysqli_query($conn, $sql_suket);
+            } else if ($data['obj'] == "Tidak Mampu") {
+              if ($data['pekerjaan_ayah'] == "Lainnya") {
+                $pekerjaan_ayah = $data['pekerjaan_ayah_other'];
+              } else {
+                $pekerjaan_ayah = $data['pekerjaan_ayah'];
+              }
+              if ($data['pekerjaan_ibu'] == "Lainnya") {
+                $pekerjaan_ibu = $data['pekerjaan_ibu_other'];
+              } else {
+                $pekerjaan_ibu = $data['pekerjaan_ibu'];
+              }
+              if ($data['pekerjaan_anak'] == "Lainnya") {
+                $pekerjaan_anak = $data['pekerjaan_anak_other'];
+              } else {
+                $pekerjaan_anak = $data['pekerjaan_anak'];
+              }
+              $sql_suket = "INSERT INTO suket_tidak_mampu(id_user,id_desa,nama_ayah,umur_ayah,alamat_ayah,pekerjaan_ayah,agama_ayah,nama_ibu,umur_ibu,alamat_ibu,pekerjaan_ibu,agama_ibu,nama_anak,tempat_lahir_anak,tgl_lahir_anak,nik_anak,no_kk_anak,jk_anak,umur_anak,alamat_anak,pekerjaan_anak,agama_anak,email) VALUES('$id_user','$data[id_desa]','$data[nama_ayah]','$data[umur_ayah]','$data[alamat_ayah]','$pekerjaan_ayah','$data[agama_ayah]','$data[nama_ibu]','$data[umur_ibu]','$data[alamat_ibu]','$pekerjaan_ibu','$data[agama_ibu]','$data[nama_anak]','$data[tempat_lahir_anak]','$data[tgl_lahir_anak]','$data[nik_anak]','$data[no_kk_anak]','$data[jk_anak]','$data[umur_anak]','$data[alamat_anak]','$pekerjaan_anak','$data[agama_anak]','$data[email]')";
+              mysqli_query($conn, $sql_suket);
+            } else if ($data['obj'] == "Usaha") {
+              if ($data['pekerjaan_p2'] == "Lainnya") {
+                $pekerjaan_p2 = $data['pekerjaan_p2_other'];
+              } else {
+                $pekerjaan_p2 = $data['pekerjaan_p2'];
+              }
+              $sql_suket = "INSERT INTO suket_usaha(id_user,id_desa,id_rt,nama_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,agama_p2,pekerjaan_p2,ket_p2,email) VALUES('$id_user','$data[id_desa]','$data[id_rt]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[alamat_p2]','$data[agama_p2]','$pekerjaan_p2','$data[ket_p2]','$data[email]')";
+              mysqli_query($conn, $sql_suket);
+            }
+          }
         }
       }
     }
 
-    mysqli_query($conn, $sql);
     return mysqli_affected_rows($conn);
   }
 
@@ -1043,196 +1162,28 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
   }
 
   // ==> Surat Keterangan
-  function domisili($conn, $data, $action)
+  function domisili($conn, $data, $action, $id_user, $id_role)
   {
     if ($action == "insert") {
-      $take_suket_domisili = "SELECT * FROM suket_domisili WHERE no_surat='$data[no_surat]'";
-      $check_suket_domisili = mysqli_query($conn, $take_suket_domisili);
-      if (mysqli_num_rows($check_suket_domisili) > 0) {
-        $message = "Nomor surat domisili yang anda masukan sudah ada.";
-        $message_type = "danger";
-        alert($message, $message_type);
-        return false;
-      }
       if ($data['pekerjaan_p2'] == "Lainnya") {
         $pekerjaan_p2 = $data['pekerjaan_p2_other'];
       } else {
         $pekerjaan_p2 = $data['pekerjaan_p2'];
       }
-      require_once("mail.php");
-      $to       = $data['email'];
-      $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
-      $message  = "<!doctype html>
-      <html>
-        <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
-            DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
-            <style>
-                @media only screen and (max-width: 620px) {
-                    table[class='body'] h1 {
-                        font-size: 28px !important;
-                        margin-bottom: 10px !important;}
-                    table[class='body'] p,
-                    table[class='body'] ul,
-                    table[class='body'] ol,
-                    table[class='body'] td,
-                    table[class='body'] span,
-                    table[class='body'] a {
-                        font-size: 16px !important;}
-                    table[class='body'] .wrapper,
-                    table[class='body'] .article {
-                        padding: 10px !important;}
-                    table[class='body'] .content {
-                        padding: 0 !important;}
-                    table[class='body'] .container {
-                        padding: 0 !important;
-                        width: 100% !important;}
-                    table[class='body'] .main {
-                        border-left-width: 0 !important;
-                        border-radius: 0 !important;
-                        border-right-width: 0 !important;}
-                    table[class='body'] .btn table {
-                        width: 100% !important;}
-                    table[class='body'] .btn a {
-                        width: 100% !important;}
-                    table[class='body'] .img-responsive {
-                        height: auto !important;
-                        max-width: 100% !important;
-                        width: auto !important;}}
-                @media all {
-                    .ExternalClass {
-                        width: 100%;}
-                    .ExternalClass,
-                    .ExternalClass p,
-                    .ExternalClass span,
-                    .ExternalClass font,
-                    .ExternalClass td,
-                    .ExternalClass div {
-                        line-height: 100%;}
-                    .apple-link a {
-                        color: inherit !important;
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        font-weight: inherit !important;
-                        line-height: inherit !important;
-                        text-decoration: none !important;
-                    .btn-primary table td:hover {
-                        background-color: #d5075d !important;}
-                    .btn-primary a:hover {
-                        background-color: #000 !important;
-                        border-color: #000 !important;
-                        color: #fff !important;}}
-            </style>
-        </head>
-        <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
-            <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
-            <tr>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
-                <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
-        
-                    <!-- START CENTERED WHITE CONTAINER -->
-                    <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
-        
-                    <!-- START MAIN CONTENT AREA -->
-                    <tr>
-                        <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
-                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                            <tr>
-                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi " . $data['nama_p2'] . ",</p>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan domisili anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan domisili dengan ringkasan data sebagai berikut : </p>
-                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
-                                <tbody>
-                                    <tr>
-                                    <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
-                                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
-                                        <tbody>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $pekerjaan_p2 . "</td>
-                                            </tr>
-                                        </tbody>
-                                        </table>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                                </table>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
-                                <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-        
-                    <!-- END MAIN CONTENT AREA -->
-                    </table>
-                    
-                    <!-- START FOOTER -->
-                    <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
-                    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                        <tr>
-                        <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
-                        </td>
-                        </tr>
-                        <tr>
-                        <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
-                        </td>
-                        </tr>
-                    </table>
-                    </div>
-                    <!-- END FOOTER -->
-        
-                <!-- END CENTERED WHITE CONTAINER -->
-                </div>
-                </td>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-            </tr>
-            </table>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, "", "", 0, 0, true);
-      $sql = "INSERT INTO suket_domisili(id_desa,no_surat,nama_p1,jabatan_p1,jk_p1,alamat_p1,nama_p2,tempat_lahir_p2,tgl_lahir_p2,jk_p2,alamat_p2,agama_p2,pekerjaan_p2,sejak_tgl_p2,tgl_surat_p2,ket_p2,email) VALUES('$data[id_desa]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[jk_p1]','$data[alamat_p1]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[jk_p2]','$data[alamat_p2]','$data[agama_p2]','$pekerjaan_p2','$data[sejak_tgl_p2]','$data[tgl_surat_p2]','$data[ket_p2]','$data[email]')";
+      $sql = "INSERT INTO suket_domisili(id_user,id_desa,nama_p2,tempat_lahir_p2,tgl_lahir_p2,jk_p2,alamat_p2,agama_p2,pekerjaan_p2,sejak_tgl_p2,tgl_surat_p2,ket_p2,email) VALUES('$id_user','$data[id_desa]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[jk_p2]','$data[alamat_p2]','$data[agama_p2]','$pekerjaan_p2','$data[sejak_tgl_p2]','$data[tgl_surat_p2]','$data[ket_p2]','$data[email]')";
     }
 
     if ($action == "update") {
-      if ($data['no_surat'] != $data['no_suratOld']) {
-        $take_suket_domisili = "SELECT * FROM suket_domisili WHERE no_surat='$data[no_surat]'";
-        $check_suket_domisili = mysqli_query($conn, $take_suket_domisili);
-        if (mysqli_num_rows($check_suket_domisili) > 0) {
-          $message = "Nomor surat domisili yang anda masukan sudah ada.";
-          $message_type = "danger";
-          alert($message, $message_type);
-          return false;
+      if ($id_role == 1) {
+        if ($data['no_surat'] != $data['no_suratOld']) {
+          $take_suket_domisili = "SELECT * FROM suket_domisili WHERE no_surat='$data[no_surat]'";
+          $check_suket_domisili = mysqli_query($conn, $take_suket_domisili);
+          if (mysqli_num_rows($check_suket_domisili) > 0) {
+            $message = "Nomor surat domisili yang anda masukan sudah ada.";
+            $message_type = "danger";
+            alert($message, $message_type);
+            return false;
+          }
         }
       }
       if ($data['pekerjaan_p2'] == "Lainnya") {
@@ -1240,7 +1191,171 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
       } else {
         $pekerjaan_p2 = $data['pekerjaan_p2'];
       }
-      $sql = "UPDATE suket_domisili SET id_desa='$data[id_desa]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', jk_p1='$data[jk_p1]', alamat_p1='$data[alamat_p1]', nama_p2='$data[nama_p2]', tempat_lahir_p2='$data[tempat_lahir_p2]', tgl_lahir_p2='$data[tgl_lahir_p2]', jk_p2='$data[jk_p2]', alamat_p2='$data[alamat_p2]', agama_p2='$data[agama_p2]', pekerjaan_p2='$pekerjaan_p2', sejak_tgl_p2='$data[sejak_tgl_p2]', tgl_surat_p2='$data[tgl_surat_p2]', ket_p2='$data[ket_p2]' WHERE id_suket_domisili='$data[id_suket_domisili]'";
+      if (!empty($data['no_surat'])) {
+        require_once("mail.php");
+        $to       = $data['email'];
+        $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
+        $message  = "<!doctype html>
+        <html>
+          <head>
+              <meta name='viewport' content='width=device-width'>
+              <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+              <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
+              DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
+              <style>
+                  @media only screen and (max-width: 620px) {
+                      table[class='body'] h1 {
+                          font-size: 28px !important;
+                          margin-bottom: 10px !important;}
+                      table[class='body'] p,
+                      table[class='body'] ul,
+                      table[class='body'] ol,
+                      table[class='body'] td,
+                      table[class='body'] span,
+                      table[class='body'] a {
+                          font-size: 16px !important;}
+                      table[class='body'] .wrapper,
+                      table[class='body'] .article {
+                          padding: 10px !important;}
+                      table[class='body'] .content {
+                          padding: 0 !important;}
+                      table[class='body'] .container {
+                          padding: 0 !important;
+                          width: 100% !important;}
+                      table[class='body'] .main {
+                          border-left-width: 0 !important;
+                          border-radius: 0 !important;
+                          border-right-width: 0 !important;}
+                      table[class='body'] .btn table {
+                          width: 100% !important;}
+                      table[class='body'] .btn a {
+                          width: 100% !important;}
+                      table[class='body'] .img-responsive {
+                          height: auto !important;
+                          max-width: 100% !important;
+                          width: auto !important;}}
+                  @media all {
+                      .ExternalClass {
+                          width: 100%;}
+                      .ExternalClass,
+                      .ExternalClass p,
+                      .ExternalClass span,
+                      .ExternalClass font,
+                      .ExternalClass td,
+                      .ExternalClass div {
+                          line-height: 100%;}
+                      .apple-link a {
+                          color: inherit !important;
+                          font-family: inherit !important;
+                          font-size: inherit !important;
+                          font-weight: inherit !important;
+                          line-height: inherit !important;
+                          text-decoration: none !important;
+                      .btn-primary table td:hover {
+                          background-color: #d5075d !important;}
+                      .btn-primary a:hover {
+                          background-color: #000 !important;
+                          border-color: #000 !important;
+                          color: #fff !important;}}
+              </style>
+          </head>
+          <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
+              <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
+              <tr>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+                  <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
+                  <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
+          
+                      <!-- START CENTERED WHITE CONTAINER -->
+                      <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
+          
+                      <!-- START MAIN CONTENT AREA -->
+                      <tr>
+                          <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
+                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                              <tr>
+                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi " . $data['nama_p2'] . ",</p>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan domisili anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan domisili dengan ringkasan data sebagai berikut : </p>
+                                  <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
+                                  <tbody>
+                                      <tr>
+                                      <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
+                                          <tbody>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $pekerjaan_p2 . "</td>
+                                              </tr>
+                                          </tbody>
+                                          </table>
+                                      </td>
+                                      </tr>
+                                  </tbody>
+                                  </table>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
+                                  <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
+                              </td>
+                              </tr>
+                          </table>
+                          </td>
+                      </tr>
+          
+                      <!-- END MAIN CONTENT AREA -->
+                      </table>
+                      
+                      <!-- START FOOTER -->
+                      <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
+                      <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                          <tr>
+                          <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
+                          </td>
+                          </tr>
+                          <tr>
+                          <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
+                          </td>
+                          </tr>
+                      </table>
+                      </div>
+                      <!-- END FOOTER -->
+          
+                  <!-- END CENTERED WHITE CONTAINER -->
+                  </div>
+                  </td>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+              </tr>
+              </table>
+          </body>
+        </html>";
+        smtp_mail($to, $subject, $message, "", "", 0, 0, true);
+      }
+      $sql = "UPDATE suket_domisili SET id_desa='$data[id_desa]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', jk_p1='$data[jk_p1]', alamat_p1='$data[alamat_p1]', nama_p2='$data[nama_p2]', tempat_lahir_p2='$data[tempat_lahir_p2]', tgl_lahir_p2='$data[tgl_lahir_p2]', jk_p2='$data[jk_p2]', alamat_p2='$data[alamat_p2]', agama_p2='$data[agama_p2]', pekerjaan_p2='$pekerjaan_p2', sejak_tgl_p2='$data[sejak_tgl_p2]', ket_p2='$data[ket_p2]' WHERE id_suket_domisili='$data[id_suket_domisili]'";
     }
 
     if ($action == "delete") {
@@ -1251,7 +1366,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     return mysqli_affected_rows($conn);
   }
 
-  function kelahiran($conn, $data, $action)
+  function kelahiran($conn, $data, $action, $id_user, $id_role)
   {
     if ($action == "insert" || $action == "update") {
       if (empty($data['pekerjaan_ayah'])) {
@@ -1281,193 +1396,189 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
 
     if ($action == "insert") {
-      $take_suket_kelahiran = "SELECT * FROM suket_kelahiran WHERE no_surat='$data[no_surat]'";
-      $check_suket_kelahiran = mysqli_query($conn, $take_suket_kelahiran);
-      if (mysqli_num_rows($check_suket_kelahiran) > 0) {
-        $message = "Nomor surat kelahiran yang anda masukan sudah ada.";
-        $message_type = "danger";
-        alert($message, $message_type);
-        return false;
-      }
-      require_once("mail.php");
-      $to       = $data['email'];
-      $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
-      $message  = "<!doctype html>
-      <html>
-        <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
-            DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
-            <style>
-                @media only screen and (max-width: 620px) {
-                    table[class='body'] h1 {
-                        font-size: 28px !important;
-                        margin-bottom: 10px !important;}
-                    table[class='body'] p,
-                    table[class='body'] ul,
-                    table[class='body'] ol,
-                    table[class='body'] td,
-                    table[class='body'] span,
-                    table[class='body'] a {
-                        font-size: 16px !important;}
-                    table[class='body'] .wrapper,
-                    table[class='body'] .article {
-                        padding: 10px !important;}
-                    table[class='body'] .content {
-                        padding: 0 !important;}
-                    table[class='body'] .container {
-                        padding: 0 !important;
-                        width: 100% !important;}
-                    table[class='body'] .main {
-                        border-left-width: 0 !important;
-                        border-radius: 0 !important;
-                        border-right-width: 0 !important;}
-                    table[class='body'] .btn table {
-                        width: 100% !important;}
-                    table[class='body'] .btn a {
-                        width: 100% !important;}
-                    table[class='body'] .img-responsive {
-                        height: auto !important;
-                        max-width: 100% !important;
-                        width: auto !important;}}
-                @media all {
-                    .ExternalClass {
-                        width: 100%;}
-                    .ExternalClass,
-                    .ExternalClass p,
-                    .ExternalClass span,
-                    .ExternalClass font,
-                    .ExternalClass td,
-                    .ExternalClass div {
-                        line-height: 100%;}
-                    .apple-link a {
-                        color: inherit !important;
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        font-weight: inherit !important;
-                        line-height: inherit !important;
-                        text-decoration: none !important;
-                    .btn-primary table td:hover {
-                        background-color: #d5075d !important;}
-                    .btn-primary a:hover {
-                        background-color: #000 !important;
-                        border-color: #000 !important;
-                        color: #fff !important;}}
-            </style>
-        </head>
-        <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
-            <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
-            <tr>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
-                <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
-        
-                    <!-- START CENTERED WHITE CONTAINER -->
-                    <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
-        
-                    <!-- START MAIN CONTENT AREA -->
-                    <tr>
-                        <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
-                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                            <tr>
-                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi " . $data['nama_p2'] . ",</p>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan kelahiran anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan kelahiran dengan ringkasan data sebagai berikut : </p>
-                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
-                                <tbody>
-                                    <tr>
-                                    <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
-                                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
-                                        <tbody>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Anak ke</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['anak_ke_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ayah</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ayah'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ibu</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ibu'] . "</td>
-                                            </tr>
-                                        </tbody>
-                                        </table>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                                </table>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
-                                <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-        
-                    <!-- END MAIN CONTENT AREA -->
-                    </table>
-                    
-                    <!-- START FOOTER -->
-                    <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
-                    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                        <tr>
-                        <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
-                        </td>
-                        </tr>
-                        <tr>
-                        <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
-                        </td>
-                        </tr>
-                    </table>
-                    </div>
-                    <!-- END FOOTER -->
-        
-                <!-- END CENTERED WHITE CONTAINER -->
-                </div>
-                </td>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-            </tr>
-            </table>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, "", "", 0, 0, true);
-      $sql = "INSERT INTO suket_kelahiran(id_desa,no_surat,nama_p1,jabatan_p1,alamat_p1,nama_p2,jk_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,anak_ke_p2,nama_ayah,umur_ayah,alamat_ayah,pekerjaan_ayah,nama_ibu,umur_ibu,alamat_ibu,pekerjaan_ibu,email) VALUES('$data[id_desa]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[alamat_p1]','$data[nama_p2]','$data[jk_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[alamat_p2]','$data[anak_ke_p2]','$data[nama_ayah]','$data[umur_ayah]','$alamat_ayah','$pekerjaan_ayah','$data[nama_ibu]','$data[umur_ibu]','$alamat_ibu','$pekerjaan_ibu','$data[email]')";
+      $sql = "INSERT INTO suket_kelahiran(id_user,id_desa,nama_p2,jk_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,anak_ke_p2,nama_ayah,umur_ayah,alamat_ayah,pekerjaan_ayah,nama_ibu,umur_ibu,alamat_ibu,pekerjaan_ibu,email) VALUES('$id_user','$data[id_desa]','$data[nama_p2]','$data[jk_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[alamat_p2]','$data[anak_ke_p2]','$data[nama_ayah]','$data[umur_ayah]','$alamat_ayah','$pekerjaan_ayah','$data[nama_ibu]','$data[umur_ibu]','$alamat_ibu','$pekerjaan_ibu','$data[email]')";
     }
 
     if ($action == "update") {
-      if ($data['no_surat'] != $data['no_suratOld']) {
-        $take_suket_kelahiran = "SELECT * FROM suket_kelahiran WHERE no_surat='$data[no_surat]'";
-        $check_suket_kelahiran = mysqli_query($conn, $take_suket_kelahiran);
-        if (mysqli_num_rows($check_suket_kelahiran) > 0) {
-          $message = "Nomor surat kelahiran yang anda masukan sudah ada.";
-          $message_type = "danger";
-          alert($message, $message_type);
-          return false;
+      if ($id_role == 1) {
+        if ($data['no_surat'] != $data['no_suratOld']) {
+          $take_suket_kelahiran = "SELECT * FROM suket_kelahiran WHERE no_surat='$data[no_surat]'";
+          $check_suket_kelahiran = mysqli_query($conn, $take_suket_kelahiran);
+          if (mysqli_num_rows($check_suket_kelahiran) > 0) {
+            $message = "Nomor surat kelahiran yang anda masukan sudah ada.";
+            $message_type = "danger";
+            alert($message, $message_type);
+            return false;
+          }
         }
+      }
+      if (!empty($data['no_surat'])) {
+        require_once("mail.php");
+        $to       = $data['email'];
+        $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
+        $message  = "<!doctype html>
+        <html>
+          <head>
+              <meta name='viewport' content='width=device-width'>
+              <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+              <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
+              DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
+              <style>
+                  @media only screen and (max-width: 620px) {
+                      table[class='body'] h1 {
+                          font-size: 28px !important;
+                          margin-bottom: 10px !important;}
+                      table[class='body'] p,
+                      table[class='body'] ul,
+                      table[class='body'] ol,
+                      table[class='body'] td,
+                      table[class='body'] span,
+                      table[class='body'] a {
+                          font-size: 16px !important;}
+                      table[class='body'] .wrapper,
+                      table[class='body'] .article {
+                          padding: 10px !important;}
+                      table[class='body'] .content {
+                          padding: 0 !important;}
+                      table[class='body'] .container {
+                          padding: 0 !important;
+                          width: 100% !important;}
+                      table[class='body'] .main {
+                          border-left-width: 0 !important;
+                          border-radius: 0 !important;
+                          border-right-width: 0 !important;}
+                      table[class='body'] .btn table {
+                          width: 100% !important;}
+                      table[class='body'] .btn a {
+                          width: 100% !important;}
+                      table[class='body'] .img-responsive {
+                          height: auto !important;
+                          max-width: 100% !important;
+                          width: auto !important;}}
+                  @media all {
+                      .ExternalClass {
+                          width: 100%;}
+                      .ExternalClass,
+                      .ExternalClass p,
+                      .ExternalClass span,
+                      .ExternalClass font,
+                      .ExternalClass td,
+                      .ExternalClass div {
+                          line-height: 100%;}
+                      .apple-link a {
+                          color: inherit !important;
+                          font-family: inherit !important;
+                          font-size: inherit !important;
+                          font-weight: inherit !important;
+                          line-height: inherit !important;
+                          text-decoration: none !important;
+                      .btn-primary table td:hover {
+                          background-color: #d5075d !important;}
+                      .btn-primary a:hover {
+                          background-color: #000 !important;
+                          border-color: #000 !important;
+                          color: #fff !important;}}
+              </style>
+          </head>
+          <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
+              <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
+              <tr>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+                  <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
+                  <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
+          
+                      <!-- START CENTERED WHITE CONTAINER -->
+                      <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
+          
+                      <!-- START MAIN CONTENT AREA -->
+                      <tr>
+                          <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
+                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                              <tr>
+                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi " . $data['nama_p2'] . ",</p>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan kelahiran anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan kelahiran dengan ringkasan data sebagai berikut : </p>
+                                  <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
+                                  <tbody>
+                                      <tr>
+                                      <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
+                                          <tbody>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Anak ke</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['anak_ke_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ayah</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ayah'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ibu</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ibu'] . "</td>
+                                              </tr>
+                                          </tbody>
+                                          </table>
+                                      </td>
+                                      </tr>
+                                  </tbody>
+                                  </table>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
+                                  <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
+                              </td>
+                              </tr>
+                          </table>
+                          </td>
+                      </tr>
+          
+                      <!-- END MAIN CONTENT AREA -->
+                      </table>
+                      
+                      <!-- START FOOTER -->
+                      <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
+                      <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                          <tr>
+                          <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
+                          </td>
+                          </tr>
+                          <tr>
+                          <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
+                          </td>
+                          </tr>
+                      </table>
+                      </div>
+                      <!-- END FOOTER -->
+          
+                  <!-- END CENTERED WHITE CONTAINER -->
+                  </div>
+                  </td>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+              </tr>
+              </table>
+          </body>
+        </html>";
+        smtp_mail($to, $subject, $message, "", "", 0, 0, true);
       }
       $sql = "UPDATE suket_kelahiran SET id_desa='$data[id_desa]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', alamat_p1='$data[alamat_p1]', nama_p2='$data[nama_p2]', jk_p2='$data[jk_p2]', tempat_lahir_p2='$data[tempat_lahir_p2]', tgl_lahir_p2='$data[tgl_lahir_p2]', alamat_p2='$data[alamat_p2]', anak_ke_p2='$data[anak_ke_p2]', nama_ayah='$data[nama_ayah]', umur_ayah='$data[umur_ayah]', alamat_ayah='$alamat_ayah', pekerjaan_ayah='$pekerjaan_ayah', nama_ibu='$data[nama_ibu]', umur_ibu='$data[umur_ibu]', alamat_ibu='$alamat_ibu', pekerjaan_ibu='$pekerjaan_ibu' WHERE id_suket_kelahiran='$data[id_suket_kelahiran]'";
     }
@@ -1480,7 +1591,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     return mysqli_affected_rows($conn);
   }
 
-  function kematian($conn, $data, $action)
+  function kematian($conn, $data, $action, $id_user, $id_role)
   {
     if ($action == "insert" || $action == "update") {
       if ($data['pekerjaan_p2'] == "Lainnya") {
@@ -1491,193 +1602,189 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
 
     if ($action == "insert") {
-      $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-      $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-      if (mysqli_num_rows($check_suket_kematian) > 0) {
-        $message = "Nomor surat kematian yang anda masukan sudah ada.";
-        $message_type = "danger";
-        alert($message, $message_type);
-        return false;
-      }
-      require_once("mail.php");
-      $to       = $data['email'];
-      $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
-      $message  = "<!doctype html>
-      <html>
-        <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
-            DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
-            <style>
-                @media only screen and (max-width: 620px) {
-                    table[class='body'] h1 {
-                        font-size: 28px !important;
-                        margin-bottom: 10px !important;}
-                    table[class='body'] p,
-                    table[class='body'] ul,
-                    table[class='body'] ol,
-                    table[class='body'] td,
-                    table[class='body'] span,
-                    table[class='body'] a {
-                        font-size: 16px !important;}
-                    table[class='body'] .wrapper,
-                    table[class='body'] .article {
-                        padding: 10px !important;}
-                    table[class='body'] .content {
-                        padding: 0 !important;}
-                    table[class='body'] .container {
-                        padding: 0 !important;
-                        width: 100% !important;}
-                    table[class='body'] .main {
-                        border-left-width: 0 !important;
-                        border-radius: 0 !important;
-                        border-right-width: 0 !important;}
-                    table[class='body'] .btn table {
-                        width: 100% !important;}
-                    table[class='body'] .btn a {
-                        width: 100% !important;}
-                    table[class='body'] .img-responsive {
-                        height: auto !important;
-                        max-width: 100% !important;
-                        width: auto !important;}}
-                @media all {
-                    .ExternalClass {
-                        width: 100%;}
-                    .ExternalClass,
-                    .ExternalClass p,
-                    .ExternalClass span,
-                    .ExternalClass font,
-                    .ExternalClass td,
-                    .ExternalClass div {
-                        line-height: 100%;}
-                    .apple-link a {
-                        color: inherit !important;
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        font-weight: inherit !important;
-                        line-height: inherit !important;
-                        text-decoration: none !important;
-                    .btn-primary table td:hover {
-                        background-color: #d5075d !important;}
-                    .btn-primary a:hover {
-                        background-color: #000 !important;
-                        border-color: #000 !important;
-                        color: #fff !important;}}
-            </style>
-        </head>
-        <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
-            <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
-            <tr>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
-                <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
-        
-                    <!-- START CENTERED WHITE CONTAINER -->
-                    <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
-        
-                    <!-- START MAIN CONTENT AREA -->
-                    <tr>
-                        <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
-                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                            <tr>
-                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan Kematian anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan Kematian dengan ringkasan data sebagai berikut : </p>
-                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
-                                <tbody>
-                                    <tr>
-                                    <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
-                                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
-                                          <tbody>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Tgl Kematian</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tgl_kematian'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Waktu</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['waktu_kematian'] . "</td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                                </table>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
-                                <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-        
-                    <!-- END MAIN CONTENT AREA -->
-                    </table>
-                    
-                    <!-- START FOOTER -->
-                    <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
-                    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                        <tr>
-                        <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
-                        </td>
-                        </tr>
-                        <tr>
-                        <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
-                        </td>
-                        </tr>
-                    </table>
-                    </div>
-                    <!-- END FOOTER -->
-        
-                <!-- END CENTERED WHITE CONTAINER -->
-                </div>
-                </td>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-            </tr>
-            </table>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, "", "", 0, 0, true);
-      $sql = "INSERT INTO suket_kematian(id_desa,id_desa_kematian,no_surat,nama_p1,jabatan_p1,alamat_p1,nama_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,tgl_kematian,waktu_kematian,pekerjaan_p2,email) VALUES('$data[id_desa]','$data[id_desa_kematian]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[alamat_p1]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[jk_p2]','$data[alamat_p2]','$data[tgl_kematian]','$data[waktu_kematian]','$pekerjaan_p2','$data[email]')";
+      $sql = "INSERT INTO suket_kematian(id_user,id_desa,id_desa_kematian,nama_p2,tempat_lahir_p2,tgl_lahir_p2,jk_p2,alamat_p2,agama_p2,tgl_kematian,waktu_kematian,pekerjaan_p2,email) VALUES('$id_user','$data[id_desa]','$data[id_desa_kematian]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[jk_p2]','$data[alamat_p2]','$data[agama_p2]','$data[tgl_kematian]','$data[waktu_kematian]','$pekerjaan_p2','$data[email]')";
     }
 
     if ($action == "update") {
-      if ($data['no_surat'] != $data['no_suratOld']) {
-        $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-        $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-        if (mysqli_num_rows($check_suket_kematian) > 0) {
-          $message = "Nomor surat kematian yang anda masukan sudah ada.";
-          $message_type = "danger";
-          alert($message, $message_type);
-          return false;
+      if ($id_role == 1) {
+        if ($data['no_surat'] != $data['no_suratOld']) {
+          $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
+          $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
+          if (mysqli_num_rows($check_suket_kematian) > 0) {
+            $message = "Nomor surat kematian yang anda masukan sudah ada.";
+            $message_type = "danger";
+            alert($message, $message_type);
+            return false;
+          }
         }
+      }
+      if (!empty($data['no_surat'])) {
+        require_once("mail.php");
+        $to       = $data['email'];
+        $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
+        $message  = "<!doctype html>
+        <html>
+          <head>
+              <meta name='viewport' content='width=device-width'>
+              <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+              <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
+              DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
+              <style>
+                  @media only screen and (max-width: 620px) {
+                      table[class='body'] h1 {
+                          font-size: 28px !important;
+                          margin-bottom: 10px !important;}
+                      table[class='body'] p,
+                      table[class='body'] ul,
+                      table[class='body'] ol,
+                      table[class='body'] td,
+                      table[class='body'] span,
+                      table[class='body'] a {
+                          font-size: 16px !important;}
+                      table[class='body'] .wrapper,
+                      table[class='body'] .article {
+                          padding: 10px !important;}
+                      table[class='body'] .content {
+                          padding: 0 !important;}
+                      table[class='body'] .container {
+                          padding: 0 !important;
+                          width: 100% !important;}
+                      table[class='body'] .main {
+                          border-left-width: 0 !important;
+                          border-radius: 0 !important;
+                          border-right-width: 0 !important;}
+                      table[class='body'] .btn table {
+                          width: 100% !important;}
+                      table[class='body'] .btn a {
+                          width: 100% !important;}
+                      table[class='body'] .img-responsive {
+                          height: auto !important;
+                          max-width: 100% !important;
+                          width: auto !important;}}
+                  @media all {
+                      .ExternalClass {
+                          width: 100%;}
+                      .ExternalClass,
+                      .ExternalClass p,
+                      .ExternalClass span,
+                      .ExternalClass font,
+                      .ExternalClass td,
+                      .ExternalClass div {
+                          line-height: 100%;}
+                      .apple-link a {
+                          color: inherit !important;
+                          font-family: inherit !important;
+                          font-size: inherit !important;
+                          font-weight: inherit !important;
+                          line-height: inherit !important;
+                          text-decoration: none !important;
+                      .btn-primary table td:hover {
+                          background-color: #d5075d !important;}
+                      .btn-primary a:hover {
+                          background-color: #000 !important;
+                          border-color: #000 !important;
+                          color: #fff !important;}}
+              </style>
+          </head>
+          <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
+              <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
+              <tr>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+                  <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
+                  <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
+          
+                      <!-- START CENTERED WHITE CONTAINER -->
+                      <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
+          
+                      <!-- START MAIN CONTENT AREA -->
+                      <tr>
+                          <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
+                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                              <tr>
+                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan Kematian anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan Kematian dengan ringkasan data sebagai berikut : </p>
+                                  <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
+                                  <tbody>
+                                      <tr>
+                                      <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
+                                            <tbody>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Tgl Kematian</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tgl_kematian'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Waktu</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['waktu_kematian'] . "</td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                      </td>
+                                      </tr>
+                                  </tbody>
+                                  </table>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
+                                  <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
+                              </td>
+                              </tr>
+                          </table>
+                          </td>
+                      </tr>
+          
+                      <!-- END MAIN CONTENT AREA -->
+                      </table>
+                      
+                      <!-- START FOOTER -->
+                      <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
+                      <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                          <tr>
+                          <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
+                          </td>
+                          </tr>
+                          <tr>
+                          <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
+                          </td>
+                          </tr>
+                      </table>
+                      </div>
+                      <!-- END FOOTER -->
+          
+                  <!-- END CENTERED WHITE CONTAINER -->
+                  </div>
+                  </td>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+              </tr>
+              </table>
+          </body>
+        </html>";
+        smtp_mail($to, $subject, $message, "", "", 0, 0, true);
       }
       $sql = "UPDATE suket_kematian SET id_desa='$data[id_desa]', id_desa_kematian='$data[id_desa_kematian]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', alamat_p1='$data[alamat_p1]', nama_p2='$data[nama_p2]', tempat_lahir_p2='$data[tempat_lahir_p2]', tgl_lahir_p2='$data[tgl_lahir_p2]', jk_p2='$data[jk_p2]', alamat_p2='$data[alamat_p2]', agama_p2='$data[agama_p2]', tgl_kematian='$data[tgl_kematian]', waktu_kematian='$data[waktu_kematian]', pekerjaan_p2='$pekerjaan_p2' WHERE id_suket_kematian='$data[id_suket_kematian]'";
     }
@@ -1690,7 +1797,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     return mysqli_affected_rows($conn);
   }
 
-  function non_kk($conn, $data, $action)
+  function non_kk($conn, $data, $action, $id_user, $id_role)
   {
     if ($action == "insert" || $action == "update") {
       if ($data['pekerjaan_p2'] == "Lainnya") {
@@ -1701,193 +1808,189 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
 
     if ($action == "insert") {
-      $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-      $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-      if (mysqli_num_rows($check_suket_kematian) > 0) {
-        $message = "Nomor surat kematian yang anda masukan sudah ada.";
-        $message_type = "danger";
-        alert($message, $message_type);
-        return false;
-      }
-      require_once("mail.php");
-      $to       = $data['email'];
-      $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
-      $message  = "<!doctype html>
-      <html>
-        <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
-            DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
-            <style>
-                @media only screen and (max-width: 620px) {
-                    table[class='body'] h1 {
-                        font-size: 28px !important;
-                        margin-bottom: 10px !important;}
-                    table[class='body'] p,
-                    table[class='body'] ul,
-                    table[class='body'] ol,
-                    table[class='body'] td,
-                    table[class='body'] span,
-                    table[class='body'] a {
-                        font-size: 16px !important;}
-                    table[class='body'] .wrapper,
-                    table[class='body'] .article {
-                        padding: 10px !important;}
-                    table[class='body'] .content {
-                        padding: 0 !important;}
-                    table[class='body'] .container {
-                        padding: 0 !important;
-                        width: 100% !important;}
-                    table[class='body'] .main {
-                        border-left-width: 0 !important;
-                        border-radius: 0 !important;
-                        border-right-width: 0 !important;}
-                    table[class='body'] .btn table {
-                        width: 100% !important;}
-                    table[class='body'] .btn a {
-                        width: 100% !important;}
-                    table[class='body'] .img-responsive {
-                        height: auto !important;
-                        max-width: 100% !important;
-                        width: auto !important;}}
-                @media all {
-                    .ExternalClass {
-                        width: 100%;}
-                    .ExternalClass,
-                    .ExternalClass p,
-                    .ExternalClass span,
-                    .ExternalClass font,
-                    .ExternalClass td,
-                    .ExternalClass div {
-                        line-height: 100%;}
-                    .apple-link a {
-                        color: inherit !important;
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        font-weight: inherit !important;
-                        line-height: inherit !important;
-                        text-decoration: none !important;
-                    .btn-primary table td:hover {
-                        background-color: #d5075d !important;}
-                    .btn-primary a:hover {
-                        background-color: #000 !important;
-                        border-color: #000 !important;
-                        color: #fff !important;}}
-            </style>
-        </head>
-        <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
-            <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
-            <tr>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
-                <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
-        
-                    <!-- START CENTERED WHITE CONTAINER -->
-                    <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
-        
-                    <!-- START MAIN CONTENT AREA -->
-                    <tr>
-                        <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
-                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                            <tr>
-                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan belum memiliki KK anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan belum memiliki KK dengan ringkasan data sebagai berikut : </p>
-                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
-                                <tbody>
-                                    <tr>
-                                    <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
-                                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
-                                          <tbody>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $pekerjaan_p2 . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Kewarganegaraan</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['kewarganegaraan'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                                </table>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
-                                <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-        
-                    <!-- END MAIN CONTENT AREA -->
-                    </table>
-                    
-                    <!-- START FOOTER -->
-                    <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
-                    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                        <tr>
-                        <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
-                        </td>
-                        </tr>
-                        <tr>
-                        <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
-                        </td>
-                        </tr>
-                    </table>
-                    </div>
-                    <!-- END FOOTER -->
-        
-                <!-- END CENTERED WHITE CONTAINER -->
-                </div>
-                </td>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-            </tr>
-            </table>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, "", "", 0, 0, true);
-      $sql = "INSERT INTO suket_non_kk(id_desa,no_surat,nama_p1,jabatan_p1,alamat_p1,nama_p2,jk_p2,tempat_lahir_p2,tgl_lahir_p2,pekerjaan_p2,agama_p2,kewarganegaraan,alamat_p2,email) VALUES('$data[id_desa]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[alamat_p1]','$data[nama_p2]','$data[jk_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$pekerjaan_p2','$data[agama_p2]','$data[kewarganegaraan]','$data[alamat_p2]','$data[email]')";
+      $sql = "INSERT INTO suket_non_kk(id_user,id_desa,nama_p2,jk_p2,tempat_lahir_p2,tgl_lahir_p2,pekerjaan_p2,agama_p2,kewarganegaraan,alamat_p2,email) VALUES('$id_user','$data[id_desa]','$data[nama_p2]','$data[jk_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$pekerjaan_p2','$data[agama_p2]','$data[kewarganegaraan]','$data[alamat_p2]','$data[email]')";
     }
 
     if ($action == "update") {
-      if ($data['no_surat'] != $data['no_suratOld']) {
-        $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-        $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-        if (mysqli_num_rows($check_suket_kematian) > 0) {
-          $message = "Nomor surat kematian yang anda masukan sudah ada.";
-          $message_type = "danger";
-          alert($message, $message_type);
-          return false;
+      if ($id_role == 1) {
+        if ($data['no_surat'] != $data['no_suratOld']) {
+          $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
+          $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
+          if (mysqli_num_rows($check_suket_kematian) > 0) {
+            $message = "Nomor surat kematian yang anda masukan sudah ada.";
+            $message_type = "danger";
+            alert($message, $message_type);
+            return false;
+          }
         }
+      }
+      if (!empty($data['no_surat'])) {
+        require_once("mail.php");
+        $to       = $data['email'];
+        $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
+        $message  = "<!doctype html>
+        <html>
+          <head>
+              <meta name='viewport' content='width=device-width'>
+              <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+              <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
+              DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
+              <style>
+                  @media only screen and (max-width: 620px) {
+                      table[class='body'] h1 {
+                          font-size: 28px !important;
+                          margin-bottom: 10px !important;}
+                      table[class='body'] p,
+                      table[class='body'] ul,
+                      table[class='body'] ol,
+                      table[class='body'] td,
+                      table[class='body'] span,
+                      table[class='body'] a {
+                          font-size: 16px !important;}
+                      table[class='body'] .wrapper,
+                      table[class='body'] .article {
+                          padding: 10px !important;}
+                      table[class='body'] .content {
+                          padding: 0 !important;}
+                      table[class='body'] .container {
+                          padding: 0 !important;
+                          width: 100% !important;}
+                      table[class='body'] .main {
+                          border-left-width: 0 !important;
+                          border-radius: 0 !important;
+                          border-right-width: 0 !important;}
+                      table[class='body'] .btn table {
+                          width: 100% !important;}
+                      table[class='body'] .btn a {
+                          width: 100% !important;}
+                      table[class='body'] .img-responsive {
+                          height: auto !important;
+                          max-width: 100% !important;
+                          width: auto !important;}}
+                  @media all {
+                      .ExternalClass {
+                          width: 100%;}
+                      .ExternalClass,
+                      .ExternalClass p,
+                      .ExternalClass span,
+                      .ExternalClass font,
+                      .ExternalClass td,
+                      .ExternalClass div {
+                          line-height: 100%;}
+                      .apple-link a {
+                          color: inherit !important;
+                          font-family: inherit !important;
+                          font-size: inherit !important;
+                          font-weight: inherit !important;
+                          line-height: inherit !important;
+                          text-decoration: none !important;
+                      .btn-primary table td:hover {
+                          background-color: #d5075d !important;}
+                      .btn-primary a:hover {
+                          background-color: #000 !important;
+                          border-color: #000 !important;
+                          color: #fff !important;}}
+              </style>
+          </head>
+          <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
+              <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
+              <tr>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+                  <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
+                  <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
+          
+                      <!-- START CENTERED WHITE CONTAINER -->
+                      <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
+          
+                      <!-- START MAIN CONTENT AREA -->
+                      <tr>
+                          <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
+                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                              <tr>
+                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan belum memiliki KK anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan belum memiliki KK dengan ringkasan data sebagai berikut : </p>
+                                  <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
+                                  <tbody>
+                                      <tr>
+                                      <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
+                                            <tbody>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $pekerjaan_p2 . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Kewarganegaraan</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['kewarganegaraan'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                      </td>
+                                      </tr>
+                                  </tbody>
+                                  </table>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
+                                  <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
+                              </td>
+                              </tr>
+                          </table>
+                          </td>
+                      </tr>
+          
+                      <!-- END MAIN CONTENT AREA -->
+                      </table>
+                      
+                      <!-- START FOOTER -->
+                      <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
+                      <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                          <tr>
+                          <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
+                          </td>
+                          </tr>
+                          <tr>
+                          <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
+                          </td>
+                          </tr>
+                      </table>
+                      </div>
+                      <!-- END FOOTER -->
+          
+                  <!-- END CENTERED WHITE CONTAINER -->
+                  </div>
+                  </td>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+              </tr>
+              </table>
+          </body>
+        </html>";
+        smtp_mail($to, $subject, $message, "", "", 0, 0, true);
       }
       $sql = "UPDATE suket_non_kk SET id_desa='$data[id_desa]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', alamat_p1='$data[alamat_p1]', nama_p2='$data[nama_p2]', jk_p2='$data[jk_p2]', tempat_lahir_p2='$data[tempat_lahir_p2]', tgl_lahir_p2='$data[tgl_lahir_p2]', pekerjaan_p2='$pekerjaan_p2', agama_p2='$data[agama_p2]', kewarganegaraan='$data[kewarganegaraan]', alamat_p2='$data[alamat_p2]' WHERE id_suket_non_kk='$data[id_suket_non_kk]'";
     }
@@ -1900,7 +2003,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     return mysqli_affected_rows($conn);
   }
 
-  function tidak_mampu($conn, $data, $action)
+  function tidak_mampu($conn, $data, $action, $id_user, $id_role)
   {
     if ($action == "insert" || $action == "update") {
       if ($data['pekerjaan_ayah'] == "Lainnya") {
@@ -1921,218 +2024,214 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
 
     if ($action == "insert") {
-      $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-      $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-      if (mysqli_num_rows($check_suket_kematian) > 0) {
-        $message = "Nomor surat kematian yang anda masukan sudah ada.";
-        $message_type = "danger";
-        alert($message, $message_type);
-        return false;
-      }
-      require_once("mail.php");
-      $to       = $data['email'];
-      $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
-      $message  = "<!doctype html>
-      <html>
-        <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
-            DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
-            <style>
-                @media only screen and (max-width: 620px) {
-                    table[class='body'] h1 {
-                        font-size: 28px !important;
-                        margin-bottom: 10px !important;}
-                    table[class='body'] p,
-                    table[class='body'] ul,
-                    table[class='body'] ol,
-                    table[class='body'] td,
-                    table[class='body'] span,
-                    table[class='body'] a {
-                        font-size: 16px !important;}
-                    table[class='body'] .wrapper,
-                    table[class='body'] .article {
-                        padding: 10px !important;}
-                    table[class='body'] .content {
-                        padding: 0 !important;}
-                    table[class='body'] .container {
-                        padding: 0 !important;
-                        width: 100% !important;}
-                    table[class='body'] .main {
-                        border-left-width: 0 !important;
-                        border-radius: 0 !important;
-                        border-right-width: 0 !important;}
-                    table[class='body'] .btn table {
-                        width: 100% !important;}
-                    table[class='body'] .btn a {
-                        width: 100% !important;}
-                    table[class='body'] .img-responsive {
-                        height: auto !important;
-                        max-width: 100% !important;
-                        width: auto !important;}}
-                @media all {
-                    .ExternalClass {
-                        width: 100%;}
-                    .ExternalClass,
-                    .ExternalClass p,
-                    .ExternalClass span,
-                    .ExternalClass font,
-                    .ExternalClass td,
-                    .ExternalClass div {
-                        line-height: 100%;}
-                    .apple-link a {
-                        color: inherit !important;
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        font-weight: inherit !important;
-                        line-height: inherit !important;
-                        text-decoration: none !important;
-                    .btn-primary table td:hover {
-                        background-color: #d5075d !important;}
-                    .btn-primary a:hover {
-                        background-color: #000 !important;
-                        border-color: #000 !important;
-                        color: #fff !important;}}
-            </style>
-        </head>
-        <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
-            <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
-            <tr>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
-                <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
-        
-                    <!-- START CENTERED WHITE CONTAINER -->
-                    <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
-        
-                    <!-- START MAIN CONTENT AREA -->
-                    <tr>
-                        <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
-                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                            <tr>
-                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan tidak mampu anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan tidak mampu dengan ringkasan data sebagai berikut : </p>
-                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
-                                <tbody>
-                                    <tr>
-                                    <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
-                                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
-                                          <tbody>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ayah</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ayah'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Umur Ayah</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['umur_ayah'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan Ayah</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['pekerjaan_ayah'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ibu</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ibu'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Umur Ibu</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['umur_ibu'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan Ibu</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['pekerjaan_ibu'] . "</td>
-                                            </tr>
-                                            <hr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Kartu Keluarga</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_kk_anak'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Induk Kependudukan</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nik_anak'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Anak</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_anak'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_anak'] . ", " . $data['tgl_lahir_anak'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_anak'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_anak'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_anak'] . "</td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                                </table>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
-                                <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-        
-                    <!-- END MAIN CONTENT AREA -->
-                    </table>
-                    
-                    <!-- START FOOTER -->
-                    <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
-                    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                        <tr>
-                        <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
-                        </td>
-                        </tr>
-                        <tr>
-                        <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
-                        </td>
-                        </tr>
-                    </table>
-                    </div>
-                    <!-- END FOOTER -->
-        
-                <!-- END CENTERED WHITE CONTAINER -->
-                </div>
-                </td>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-            </tr>
-            </table>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, "", "", 0, 0, true);
-      $sql = "INSERT INTO suket_tidak_mampu(id_desa,no_surat,nama_p1,jabatan_p1,alamat_p1,nama_ayah,umur_ayah,alamat_ayah,pekerjaan_ayah,agama_ayah,nama_ibu,umur_ibu,alamat_ibu,pekerjaan_ibu,agama_ibu,nama_anak,tempat_lahir_anak,tgl_lahir_anak,nik_anak,no_kk_anak,jk_anak,umur_anak,alamat_anak,pekerjaan_anak,agama_anak,email) VALUES('$data[id_desa]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[alamat_p1]','$data[nama_ayah]','$data[umur_ayah]','$data[alamat_ayah]','$pekerjaan_ayah','$data[agama_ayah]','$data[nama_ibu]','$data[umur_ibu]','$data[alamat_ibu]','$pekerjaan_ibu','$data[agama_ibu]','$data[nama_anak]','$data[tempat_lahir_anak]','$data[tgl_lahir_anak]','$data[nik_anak]','$data[no_kk_anak]','$data[jk_anak]','$data[umur_anak]','$data[alamat_anak]','$pekerjaan_anak','$data[agama_anak]','$data[email]')";
+      $sql = "INSERT INTO suket_tidak_mampu(id_user,id_desa,nama_ayah,umur_ayah,alamat_ayah,pekerjaan_ayah,agama_ayah,nama_ibu,umur_ibu,alamat_ibu,pekerjaan_ibu,agama_ibu,nama_anak,tempat_lahir_anak,tgl_lahir_anak,nik_anak,no_kk_anak,jk_anak,umur_anak,alamat_anak,pekerjaan_anak,agama_anak,email) VALUES('$id_user','$data[id_desa]','$data[nama_ayah]','$data[umur_ayah]','$data[alamat_ayah]','$pekerjaan_ayah','$data[agama_ayah]','$data[nama_ibu]','$data[umur_ibu]','$data[alamat_ibu]','$pekerjaan_ibu','$data[agama_ibu]','$data[nama_anak]','$data[tempat_lahir_anak]','$data[tgl_lahir_anak]','$data[nik_anak]','$data[no_kk_anak]','$data[jk_anak]','$data[umur_anak]','$data[alamat_anak]','$pekerjaan_anak','$data[agama_anak]','$data[email]')";
     }
 
     if ($action == "update") {
-      if ($data['no_surat'] != $data['no_suratOld']) {
-        $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-        $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-        if (mysqli_num_rows($check_suket_kematian) > 0) {
-          $message = "Nomor surat kematian yang anda masukan sudah ada.";
-          $message_type = "danger";
-          alert($message, $message_type);
-          return false;
+      if ($id_role == 1) {
+        if ($data['no_surat'] != $data['no_suratOld']) {
+          $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
+          $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
+          if (mysqli_num_rows($check_suket_kematian) > 0) {
+            $message = "Nomor surat kematian yang anda masukan sudah ada.";
+            $message_type = "danger";
+            alert($message, $message_type);
+            return false;
+          }
         }
+      }
+      if (!empty($data['no_surat'])) {
+        require_once("mail.php");
+        $to       = $data['email'];
+        $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
+        $message  = "<!doctype html>
+        <html>
+          <head>
+              <meta name='viewport' content='width=device-width'>
+              <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+              <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
+              DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
+              <style>
+                  @media only screen and (max-width: 620px) {
+                      table[class='body'] h1 {
+                          font-size: 28px !important;
+                          margin-bottom: 10px !important;}
+                      table[class='body'] p,
+                      table[class='body'] ul,
+                      table[class='body'] ol,
+                      table[class='body'] td,
+                      table[class='body'] span,
+                      table[class='body'] a {
+                          font-size: 16px !important;}
+                      table[class='body'] .wrapper,
+                      table[class='body'] .article {
+                          padding: 10px !important;}
+                      table[class='body'] .content {
+                          padding: 0 !important;}
+                      table[class='body'] .container {
+                          padding: 0 !important;
+                          width: 100% !important;}
+                      table[class='body'] .main {
+                          border-left-width: 0 !important;
+                          border-radius: 0 !important;
+                          border-right-width: 0 !important;}
+                      table[class='body'] .btn table {
+                          width: 100% !important;}
+                      table[class='body'] .btn a {
+                          width: 100% !important;}
+                      table[class='body'] .img-responsive {
+                          height: auto !important;
+                          max-width: 100% !important;
+                          width: auto !important;}}
+                  @media all {
+                      .ExternalClass {
+                          width: 100%;}
+                      .ExternalClass,
+                      .ExternalClass p,
+                      .ExternalClass span,
+                      .ExternalClass font,
+                      .ExternalClass td,
+                      .ExternalClass div {
+                          line-height: 100%;}
+                      .apple-link a {
+                          color: inherit !important;
+                          font-family: inherit !important;
+                          font-size: inherit !important;
+                          font-weight: inherit !important;
+                          line-height: inherit !important;
+                          text-decoration: none !important;
+                      .btn-primary table td:hover {
+                          background-color: #d5075d !important;}
+                      .btn-primary a:hover {
+                          background-color: #000 !important;
+                          border-color: #000 !important;
+                          color: #fff !important;}}
+              </style>
+          </head>
+          <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
+              <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
+              <tr>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+                  <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
+                  <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
+          
+                      <!-- START CENTERED WHITE CONTAINER -->
+                      <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
+          
+                      <!-- START MAIN CONTENT AREA -->
+                      <tr>
+                          <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
+                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                              <tr>
+                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan tidak mampu anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan tidak mampu dengan ringkasan data sebagai berikut : </p>
+                                  <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
+                                  <tbody>
+                                      <tr>
+                                      <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
+                                            <tbody>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ayah</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ayah'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Umur Ayah</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['umur_ayah'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan Ayah</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['pekerjaan_ayah'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Ibu</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_ibu'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Umur Ibu</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['umur_ibu'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan Ibu</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['pekerjaan_ibu'] . "</td>
+                                              </tr>
+                                              <hr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Kartu Keluarga</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_kk_anak'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Induk Kependudukan</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nik_anak'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama Anak</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_anak'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_anak'] . ", " . $data['tgl_lahir_anak'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Jenis Kelamin</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['jk_anak'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_anak'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_anak'] . "</td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                      </td>
+                                      </tr>
+                                  </tbody>
+                                  </table>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
+                                  <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
+                              </td>
+                              </tr>
+                          </table>
+                          </td>
+                      </tr>
+          
+                      <!-- END MAIN CONTENT AREA -->
+                      </table>
+                      
+                      <!-- START FOOTER -->
+                      <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
+                      <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                          <tr>
+                          <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
+                          </td>
+                          </tr>
+                          <tr>
+                          <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
+                          </td>
+                          </tr>
+                      </table>
+                      </div>
+                      <!-- END FOOTER -->
+          
+                  <!-- END CENTERED WHITE CONTAINER -->
+                  </div>
+                  </td>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+              </tr>
+              </table>
+          </body>
+        </html>";
+        smtp_mail($to, $subject, $message, "", "", 0, 0, true);
       }
       $sql = "UPDATE suket_tidak_mampu SET id_desa='$data[id_desa]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', alamat_p1='$data[alamat_p1]', nama_ayah='$data[nama_ayah]', umur_ayah='$data[umur_ayah]', alamat_ayah='$data[alamat_ayah]', pekerjaan_ayah='$pekerjaan_ayah', agama_ayah='$data[agama_ayah]', nama_ibu='$data[nama_ibu]', umur_ibu='$data[umur_ibu]', alamat_ibu='$data[alamat_ibu]', pekerjaan_ibu='$pekerjaan_ibu', agama_ibu='$data[agama_ibu]', nama_anak='$data[nama_anak]', tempat_lahir_anak='$data[tempat_lahir_anak]', tgl_lahir_anak='$data[tgl_lahir_anak]', nik_anak='$data[nik_anak]', no_kk_anak='$data[no_kk_anak]', jk_anak='$data[jk_anak]', umur_anak='$data[umur_anak]', alamat_anak='$data[alamat_anak]', pekerjaan_anak='$pekerjaan_anak', agama_anak='$data[agama_anak]' WHERE id_suket_tidak_mampu='$data[id_suket_tidak_mampu]'";
     }
@@ -2145,7 +2244,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     return mysqli_affected_rows($conn);
   }
 
-  function usaha($conn, $data, $action)
+  function usaha($conn, $data, $action, $id_user, $id_role)
   {
     if ($action == "insert" || $action == "update") {
       if ($data['pekerjaan_p2'] == "Lainnya") {
@@ -2156,189 +2255,185 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
 
     if ($action == "insert") {
-      $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-      $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-      if (mysqli_num_rows($check_suket_kematian) > 0) {
-        $message = "Nomor surat kematian yang anda masukan sudah ada.";
-        $message_type = "danger";
-        alert($message, $message_type);
-        return false;
-      }
-      require_once("mail.php");
-      $to       = $data['email'];
-      $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
-      $message  = "<!doctype html>
-      <html>
-        <head>
-            <meta name='viewport' content='width=device-width'>
-            <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-            <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
-            DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
-            <style>
-                @media only screen and (max-width: 620px) {
-                    table[class='body'] h1 {
-                        font-size: 28px !important;
-                        margin-bottom: 10px !important;}
-                    table[class='body'] p,
-                    table[class='body'] ul,
-                    table[class='body'] ol,
-                    table[class='body'] td,
-                    table[class='body'] span,
-                    table[class='body'] a {
-                        font-size: 16px !important;}
-                    table[class='body'] .wrapper,
-                    table[class='body'] .article {
-                        padding: 10px !important;}
-                    table[class='body'] .content {
-                        padding: 0 !important;}
-                    table[class='body'] .container {
-                        padding: 0 !important;
-                        width: 100% !important;}
-                    table[class='body'] .main {
-                        border-left-width: 0 !important;
-                        border-radius: 0 !important;
-                        border-right-width: 0 !important;}
-                    table[class='body'] .btn table {
-                        width: 100% !important;}
-                    table[class='body'] .btn a {
-                        width: 100% !important;}
-                    table[class='body'] .img-responsive {
-                        height: auto !important;
-                        max-width: 100% !important;
-                        width: auto !important;}}
-                @media all {
-                    .ExternalClass {
-                        width: 100%;}
-                    .ExternalClass,
-                    .ExternalClass p,
-                    .ExternalClass span,
-                    .ExternalClass font,
-                    .ExternalClass td,
-                    .ExternalClass div {
-                        line-height: 100%;}
-                    .apple-link a {
-                        color: inherit !important;
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        font-weight: inherit !important;
-                        line-height: inherit !important;
-                        text-decoration: none !important;
-                    .btn-primary table td:hover {
-                        background-color: #d5075d !important;}
-                    .btn-primary a:hover {
-                        background-color: #000 !important;
-                        border-color: #000 !important;
-                        color: #fff !important;}}
-            </style>
-        </head>
-        <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
-            <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
-            <tr>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-                <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
-                <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
-        
-                    <!-- START CENTERED WHITE CONTAINER -->
-                    <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
-        
-                    <!-- START MAIN CONTENT AREA -->
-                    <tr>
-                        <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
-                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                            <tr>
-                            <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan usaha anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan usaha dengan ringkasan data sebagai berikut : </p>
-                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
-                                <tbody>
-                                    <tr>
-                                    <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
-                                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
-                                          <tbody>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $pekerjaan_p2 . "</td>
-                                            </tr>
-                                            <tr>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Keterangan Usaha</td>
-                                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['ket_p2'] . "</td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                    </td>
-                                    </tr>
-                                </tbody>
-                                </table>
-                                <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
-                                <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-        
-                    <!-- END MAIN CONTENT AREA -->
-                    </table>
-                    
-                    <!-- START FOOTER -->
-                    <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
-                    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
-                        <tr>
-                        <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
-                        </td>
-                        </tr>
-                        <tr>
-                        <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
-                            Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
-                        </td>
-                        </tr>
-                    </table>
-                    </div>
-                    <!-- END FOOTER -->
-        
-                <!-- END CENTERED WHITE CONTAINER -->
-                </div>
-                </td>
-                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
-            </tr>
-            </table>
-        </body>
-      </html>";
-      smtp_mail($to, $subject, $message, "", "", 0, 0, true);
-      $sql = "INSERT INTO suket_usaha(id_desa,id_rt,no_surat,nama_p1,jabatan_p1,alamat_p1,nama_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,agama_p2,pekerjaan_p2,ket_p2,email) VALUES('$data[id_desa]','$data[id_rt]','$data[no_surat]','$data[nama_p1]','$data[jabatan_p1]','$data[alamat_p1]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[alamat_p2]','$data[agama_p2]','$pekerjaan_p2','$data[ket_p2]','$data[email]')";
+      $sql = "INSERT INTO suket_usaha(id_user,id_desa,id_rt,nama_p2,tempat_lahir_p2,tgl_lahir_p2,alamat_p2,agama_p2,pekerjaan_p2,ket_p2,email) VALUES('$id_user','$data[id_desa]','$data[id_rt]','$data[nama_p2]','$data[tempat_lahir_p2]','$data[tgl_lahir_p2]','$data[alamat_p2]','$data[agama_p2]','$pekerjaan_p2','$data[ket_p2]','$data[email]')";
     }
 
     if ($action == "update") {
-      if ($data['no_surat'] != $data['no_suratOld']) {
-        $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
-        $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
-        if (mysqli_num_rows($check_suket_kematian) > 0) {
-          $message = "Nomor surat kematian yang anda masukan sudah ada.";
-          $message_type = "danger";
-          alert($message, $message_type);
-          return false;
+      if ($id_role == 1) {
+        if ($data['no_surat'] != $data['no_suratOld']) {
+          $take_suket_kematian = "SELECT * FROM suket_kematian WHERE no_surat='$data[no_surat]'";
+          $check_suket_kematian = mysqli_query($conn, $take_suket_kematian);
+          if (mysqli_num_rows($check_suket_kematian) > 0) {
+            $message = "Nomor surat kematian yang anda masukan sudah ada.";
+            $message_type = "danger";
+            alert($message, $message_type);
+            return false;
+          }
         }
+      }
+      if (!empty($data['no_surat'])) {
+        require_once("mail.php");
+        $to       = $data['email'];
+        $subject  = "Surat Keterangan - PELAYANAN KEPENDUDKAN DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA";
+        $message  = "<!doctype html>
+        <html>
+          <head>
+              <meta name='viewport' content='width=device-width'>
+              <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+              <title>Surat Keterangan - PELAYANAN KEPENDUDKAN
+              DESA DELO, KEC. SABU BARAT, KAB. SABU RAIJUA</title>
+              <style>
+                  @media only screen and (max-width: 620px) {
+                      table[class='body'] h1 {
+                          font-size: 28px !important;
+                          margin-bottom: 10px !important;}
+                      table[class='body'] p,
+                      table[class='body'] ul,
+                      table[class='body'] ol,
+                      table[class='body'] td,
+                      table[class='body'] span,
+                      table[class='body'] a {
+                          font-size: 16px !important;}
+                      table[class='body'] .wrapper,
+                      table[class='body'] .article {
+                          padding: 10px !important;}
+                      table[class='body'] .content {
+                          padding: 0 !important;}
+                      table[class='body'] .container {
+                          padding: 0 !important;
+                          width: 100% !important;}
+                      table[class='body'] .main {
+                          border-left-width: 0 !important;
+                          border-radius: 0 !important;
+                          border-right-width: 0 !important;}
+                      table[class='body'] .btn table {
+                          width: 100% !important;}
+                      table[class='body'] .btn a {
+                          width: 100% !important;}
+                      table[class='body'] .img-responsive {
+                          height: auto !important;
+                          max-width: 100% !important;
+                          width: auto !important;}}
+                  @media all {
+                      .ExternalClass {
+                          width: 100%;}
+                      .ExternalClass,
+                      .ExternalClass p,
+                      .ExternalClass span,
+                      .ExternalClass font,
+                      .ExternalClass td,
+                      .ExternalClass div {
+                          line-height: 100%;}
+                      .apple-link a {
+                          color: inherit !important;
+                          font-family: inherit !important;
+                          font-size: inherit !important;
+                          font-weight: inherit !important;
+                          line-height: inherit !important;
+                          text-decoration: none !important;
+                      .btn-primary table td:hover {
+                          background-color: #d5075d !important;}
+                      .btn-primary a:hover {
+                          background-color: #000 !important;
+                          border-color: #000 !important;
+                          color: #fff !important;}}
+              </style>
+          </head>
+          <body class style='background-color: #e1e3e5; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;'>
+              <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='body' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background-color: #e1e3e5; width: 100%;' width='100%' bgcolor='#e1e3e5'>
+              <tr>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+                  <td class='container' style='font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;' width='580' valign='top'>
+                  <div class='content' style='box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;'>
+          
+                      <!-- START CENTERED WHITE CONTAINER -->
+                      <table role='presentation' class='main' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; background: #ffffff; border-radius: 3px; width: 100%;' width='100%'>
+          
+                      <!-- START MAIN CONTENT AREA -->
+                      <tr>
+                          <td class='wrapper' style='font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;' valign='top'>
+                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                              <tr>
+                              <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Hi,</p>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Kami ingin memberitahukan bahwa surat keterangan usaha anda telah berhasil atau selesai dibuat. Anda sudah bisa mengambil surat keterangan usaha dengan ringkasan data sebagai berikut : </p>
+                                  <table role='presentation' border='0' cellpadding='0' cellspacing='0' class='btn btn-primary' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; min-width: 100%; width: 100%;' width='100%'>
+                                  <tbody>
+                                      <tr>
+                                      <td align='left' style='font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;' valign='top'>
+                                          <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;'>
+                                            <tbody>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>No. Surat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['no_surat'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Nama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['nama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>TTL</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['tempat_lahir_p2'] . ", " . $data['tgl_lahir_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Alamat</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['alamat_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Agama</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['agama_p2'] . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Pekerjaan</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $pekerjaan_p2 . "</td>
+                                              </tr>
+                                              <tr>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;width: 200px;' valign='top' bgcolor='#ffffff' align='center'>Keterangan Usaha</td>
+                                                <td style='font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #ffffff; border-radius: 5px; text-align: left; font-weight: bold;' valign='top' bgcolor='#ffffff' align='center'>: " . $data['ket_p2'] . "</td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                      </td>
+                                      </tr>
+                                  </tbody>
+                                  </table>
+                                  <p style='font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;'>Terima kasih telah menggunakan Sistem Pelayanan Kependudukan Desa Delo.</p>
+                                  <small>Peringatan! Ini adalah pesan otomatis sehingga Anda tidak dapat membalas pesan ini.</small>
+                              </td>
+                              </tr>
+                          </table>
+                          </td>
+                      </tr>
+          
+                      <!-- END MAIN CONTENT AREA -->
+                      </table>
+                      
+                      <!-- START FOOTER -->
+                      <div class='footer' style='clear: both; margin-top: 10px; text-align: center; width: 100%;'>
+                      <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%;' width='100%'>
+                          <tr>
+                          <td class='content-block' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              <span class='apple-link' style='color: #9a9ea6; font-size: 12px; text-align: center;'>Workarea Jln. S. K. Lerik, Kota Baru, Kupang, NTT, Indonesia. (0380) 8438423</span>
+                          </td>
+                          </tr>
+                          <tr>
+                          <td class='content-block powered-by' style='font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #9a9ea6; font-size: 12px; text-align: center;' valign='top' align='center'>
+                              Powered by <a href='https://www.netmedia-framecode.com' style='color: #9a9ea6; font-size: 12px; text-align: center; text-decoration: none;'>Netmedia Framecode</a>.
+                          </td>
+                          </tr>
+                      </table>
+                      </div>
+                      <!-- END FOOTER -->
+          
+                  <!-- END CENTERED WHITE CONTAINER -->
+                  </div>
+                  </td>
+                  <td style='font-family: sans-serif; font-size: 14px; vertical-align: top;' valign='top'>&nbsp;</td>
+              </tr>
+              </table>
+          </body>
+        </html>";
+        smtp_mail($to, $subject, $message, "", "", 0, 0, true);
       }
       $sql = "UPDATE suket_usaha SET id_desa='$data[id_desa]', id_rt='$data[id_rt]', no_surat='$data[no_surat]', nama_p1='$data[nama_p1]', jabatan_p1='$data[jabatan_p1]', alamat_p1='$data[alamat_p1]', nama_p2='$data[nama_p2]', tempat_lahir_p2='$data[tempat_lahir_p2]', tgl_lahir_p2='$data[tgl_lahir_p2]', alamat_p2='$data[alamat_p2]', agama_p2='$data[agama_p2]', pekerjaan_p2='$pekerjaan_p2', ket_p2='$data[ket_p2]' WHERE id_suket_usaha='$data[id_suket_usaha]'";
     }

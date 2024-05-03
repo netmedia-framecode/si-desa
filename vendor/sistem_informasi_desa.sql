@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Waktu pembuatan: 13 Mar 2024 pada 05.18
--- Versi server: 10.4.28-MariaDB
--- Versi PHP: 8.2.4
+-- Host: localhost:3306
+-- Waktu pembuatan: 03 Bulan Mei 2024 pada 11.04
+-- Versi server: 8.3.0
+-- Versi PHP: 8.1.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,9 +28,9 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `auth` (
-  `id` int(11) NOT NULL,
-  `image` varchar(50) DEFAULT NULL,
-  `bg` varchar(35) DEFAULT NULL
+  `id` int NOT NULL,
+  `image` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `bg` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -38,7 +38,7 @@ CREATE TABLE `auth` (
 --
 
 INSERT INTO `auth` (`id`, `image`, `bg`) VALUES
-(1, '460536758.jpg', '#4e73de');
+(1, '460536758.jpg', '#4edfce');
 
 -- --------------------------------------------------------
 
@@ -47,11 +47,11 @@ INSERT INTO `auth` (`id`, `image`, `bg`) VALUES
 --
 
 CREATE TABLE `desa` (
-  `id_desa` int(11) NOT NULL,
-  `id_kecamatan` int(11) DEFAULT NULL,
-  `desa` varchar(75) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_desa` int NOT NULL,
+  `id_kecamatan` int DEFAULT NULL,
+  `desa` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -68,11 +68,11 @@ INSERT INTO `desa` (`id_desa`, `id_kecamatan`, `desa`, `created_at`, `updated_at
 --
 
 CREATE TABLE `kabupaten` (
-  `id_kabupaten` int(11) NOT NULL,
-  `id_provinsi` int(11) DEFAULT NULL,
-  `kabupaten` varchar(75) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_kabupaten` int NOT NULL,
+  `id_provinsi` int DEFAULT NULL,
+  `kabupaten` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -89,11 +89,11 @@ INSERT INTO `kabupaten` (`id_kabupaten`, `id_provinsi`, `kabupaten`, `created_at
 --
 
 CREATE TABLE `kecamatan` (
-  `id_kecamatan` int(11) NOT NULL,
-  `id_kabupaten` int(11) DEFAULT NULL,
-  `kecamatan` varchar(75) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_kecamatan` int NOT NULL,
+  `id_kabupaten` int DEFAULT NULL,
+  `kecamatan` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -110,13 +110,13 @@ INSERT INTO `kecamatan` (`id_kecamatan`, `id_kabupaten`, `kecamatan`, `created_a
 --
 
 CREATE TABLE `kontak` (
-  `id_kontak` int(11) NOT NULL,
-  `username` varchar(75) DEFAULT NULL,
-  `email` varchar(50) DEFAULT NULL,
-  `phone` char(12) DEFAULT NULL,
-  `pesan` text DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_kontak` int NOT NULL,
+  `username` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone` char(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pesan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -126,8 +126,8 @@ CREATE TABLE `kontak` (
 --
 
 CREATE TABLE `misi` (
-  `id` int(11) NOT NULL,
-  `misi` text DEFAULT NULL
+  `id` int NOT NULL,
+  `misi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -135,7 +135,7 @@ CREATE TABLE `misi` (
 --
 
 INSERT INTO `misi` (`id`, `misi`) VALUES
-(1, '<p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Consequuntur, saepe dolor ratione reiciendis quae cum beatae iste quidem sunt aliquid provident culpa, mollitia maxime atque eveniet, eius laboriosam facilis porro omnis at commodi assumenda? Asperiores adipisci iste at laudantium commodi exercitationem voluptatem tenetur, animi temporibus sed nam dicta quae saepe.</p>\r\n');
+(1, '<ol>\n	<li>Mewujudkan pemerintahan desa yang tertib dan berwibawa</li>\n	<li>Mewujudkan sarana prasarana desa yang memadai</li>\n</ol>\n');
 
 -- --------------------------------------------------------
 
@@ -144,10 +144,10 @@ INSERT INTO `misi` (`id`, `misi`) VALUES
 --
 
 CREATE TABLE `provinsi` (
-  `id_provinsi` int(11) NOT NULL,
-  `provinsi` varchar(75) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_provinsi` int NOT NULL,
+  `provinsi` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -164,11 +164,11 @@ INSERT INTO `provinsi` (`id_provinsi`, `provinsi`, `created_at`, `updated_at`) V
 --
 
 CREATE TABLE `rt` (
-  `id_rt` int(11) NOT NULL,
-  `id_rw` int(11) DEFAULT NULL,
-  `rt` char(10) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_rt` int NOT NULL,
+  `id_rw` int DEFAULT NULL,
+  `rt` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -192,11 +192,11 @@ INSERT INTO `rt` (`id_rt`, `id_rw`, `rt`, `created_at`, `updated_at`) VALUES
 --
 
 CREATE TABLE `rw` (
-  `id_rw` int(11) NOT NULL,
-  `id_desa` int(11) DEFAULT NULL,
-  `rw` char(10) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_rw` int NOT NULL,
+  `id_desa` int DEFAULT NULL,
+  `rw` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -222,34 +222,28 @@ INSERT INTO `rw` (`id_rw`, `id_desa`, `rw`, `created_at`, `updated_at`) VALUES
 --
 
 CREATE TABLE `suket_domisili` (
-  `id_suket_domisili` int(11) NOT NULL,
-  `id_desa` int(11) DEFAULT NULL,
-  `id_user` int(11) NOT NULL DEFAULT 1,
-  `no_surat` varchar(75) DEFAULT NULL,
-  `nama_p1` varchar(75) DEFAULT NULL,
-  `jabatan_p1` varchar(50) DEFAULT NULL,
-  `jk_p1` varchar(35) DEFAULT NULL,
-  `alamat_p1` varchar(225) DEFAULT NULL,
-  `nama_p2` varchar(75) DEFAULT NULL,
-  `tempat_lahir_p2` varchar(35) DEFAULT NULL,
+  `id_suket_domisili` int NOT NULL,
+  `id_desa` int DEFAULT NULL,
+  `id_user` int NOT NULL DEFAULT '1',
+  `no_surat` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p1` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jabatan_p1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jk_p1` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p1` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p2` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tempat_lahir_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_lahir_p2` date DEFAULT NULL,
-  `jk_p2` varchar(35) DEFAULT NULL,
-  `alamat_p2` varchar(225) DEFAULT NULL,
-  `agama_p2` varchar(35) DEFAULT NULL,
-  `pekerjaan_p2` varchar(50) DEFAULT NULL,
+  `jk_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p2` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pekerjaan_p2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `sejak_tgl_p2` date DEFAULT NULL,
-  `tgl_surat_p2` date DEFAULT current_timestamp(),
-  `ket_p2` text DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `tgl_surat_p2` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `ket_p2` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `suket_domisili`
---
-
-INSERT INTO `suket_domisili` (`id_suket_domisili`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `jk_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `jk_p2`, `alamat_p2`, `agama_p2`, `pekerjaan_p2`, `sejak_tgl_p2`, `tgl_surat_p2`, `ket_p2`, `created_at`, `updated_at`) VALUES
-(5, 1, 2, '179/ SKETB / DS.DL / VI/ 2021', 'ADRIANA HILA KORE', 'Sekretaris Desa', 'Perempuan', 'RT 001, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'VERLY APRIYANTO BOLA NGURU', 'Jamikerata', '2006-11-08', 'Laki-laki', 'RT 014, RW 007, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', 'Pelajar', '2006-11-08', '2021-06-11', 'akan melanjutkan studi ke Kupang di SMK Negeri 3 Kupang', '2024-02-29 05:52:29', '2024-03-13 12:04:32');
 
 -- --------------------------------------------------------
 
@@ -258,37 +252,31 @@ INSERT INTO `suket_domisili` (`id_suket_domisili`, `id_desa`, `id_user`, `no_sur
 --
 
 CREATE TABLE `suket_kelahiran` (
-  `id_suket_kelahiran` int(11) NOT NULL,
-  `id_desa` int(11) NOT NULL,
-  `id_user` int(11) NOT NULL DEFAULT 1,
-  `no_surat` varchar(75) DEFAULT NULL,
-  `nama_p1` varchar(75) DEFAULT NULL,
-  `jabatan_p1` varchar(50) DEFAULT NULL,
-  `alamat_p1` varchar(225) DEFAULT NULL,
-  `nama_p2` varchar(75) DEFAULT NULL,
-  `jk_p2` varchar(35) DEFAULT NULL,
-  `tempat_lahir_p2` varchar(35) DEFAULT NULL,
+  `id_suket_kelahiran` int NOT NULL,
+  `id_desa` int NOT NULL,
+  `id_user` int NOT NULL DEFAULT '1',
+  `no_surat` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p1` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jabatan_p1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p1` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p2` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jk_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tempat_lahir_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_lahir_p2` date DEFAULT NULL,
-  `alamat_p2` varchar(225) NOT NULL,
-  `anak_ke_p2` int(11) DEFAULT NULL,
-  `nama_ayah` varchar(75) DEFAULT NULL,
-  `umur_ayah` int(11) DEFAULT NULL,
-  `alamat_ayah` varchar(225) DEFAULT NULL,
-  `pekerjaan_ayah` varchar(50) DEFAULT NULL,
-  `nama_ibu` varchar(75) DEFAULT NULL,
-  `umur_ibu` int(11) DEFAULT NULL,
-  `alamat_ibu` varchar(225) DEFAULT NULL,
-  `pekerjaan_ibu` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `alamat_p2` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `anak_ke_p2` int DEFAULT '0',
+  `nama_ayah` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `umur_ayah` int DEFAULT '0',
+  `alamat_ayah` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pekerjaan_ayah` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_ibu` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `umur_ibu` int DEFAULT '0',
+  `alamat_ibu` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pekerjaan_ibu` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `suket_kelahiran`
---
-
-INSERT INTO `suket_kelahiran` (`id_suket_kelahiran`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `jk_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `alamat_p2`, `anak_ke_p2`, `nama_ayah`, `umur_ayah`, `alamat_ayah`, `pekerjaan_ayah`, `nama_ibu`, `umur_ibu`, `alamat_ibu`, `pekerjaan_ibu`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, '009 /SKK/DS.DL-SR/I/2024', 'DANIEL LOGO', 'Kepala Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'RIFAN HAPR', 'Laki-laki', 'Muli', '1985-09-01', 'RT 015, RW 008, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 4, '', 0, '', '', 'RIBKA LUDJI WOLO', 0, '', '', '2024-02-29 05:16:51', '2024-03-13 12:05:16');
 
 -- --------------------------------------------------------
 
@@ -297,33 +285,27 @@ INSERT INTO `suket_kelahiran` (`id_suket_kelahiran`, `id_desa`, `id_user`, `no_s
 --
 
 CREATE TABLE `suket_kematian` (
-  `id_suket_kematian` int(11) NOT NULL,
-  `id_desa` int(11) DEFAULT NULL,
-  `id_desa_kematian` int(11) DEFAULT NULL,
-  `id_user` int(11) NOT NULL DEFAULT 1,
-  `no_surat` varchar(75) DEFAULT NULL,
-  `nama_p1` varchar(75) DEFAULT NULL,
-  `jabatan_p1` varchar(50) DEFAULT NULL,
-  `alamat_p1` varchar(225) DEFAULT NULL,
-  `nama_p2` varchar(75) DEFAULT NULL,
-  `tempat_lahir_p2` varchar(35) DEFAULT NULL,
+  `id_suket_kematian` int NOT NULL,
+  `id_desa` int DEFAULT NULL,
+  `id_desa_kematian` int DEFAULT NULL,
+  `id_user` int NOT NULL DEFAULT '1',
+  `no_surat` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p1` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jabatan_p1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p1` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p2` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tempat_lahir_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_lahir_p2` date DEFAULT NULL,
-  `jk_p2` varchar(35) NOT NULL,
-  `alamat_p2` varchar(225) DEFAULT NULL,
-  `agama_p2` varchar(35) DEFAULT NULL,
+  `jk_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `alamat_p2` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_kematian` date DEFAULT NULL,
   `waktu_kematian` time DEFAULT NULL,
-  `pekerjaan_p2` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `pekerjaan_p2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `suket_kematian`
---
-
-INSERT INTO `suket_kematian` (`id_suket_kematian`, `id_desa`, `id_desa_kematian`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `jk_p2`, `alamat_p2`, `agama_p2`, `tgl_kematian`, `waktu_kematian`, `pekerjaan_p2`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 2, '092/ DS.DL /SKK/ V/ 2023', 'DANIEL LOGO', 'Kepala Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'DOMINGGUS ROHI', 'Delo', '1942-07-25', 'Laki-laki', 'RT 002, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', '2001-03-02', '03:30:00', 'Petani/Pekebun', '2024-02-29 09:33:30', '2024-03-13 12:06:02');
 
 -- --------------------------------------------------------
 
@@ -332,31 +314,25 @@ INSERT INTO `suket_kematian` (`id_suket_kematian`, `id_desa`, `id_desa_kematian`
 --
 
 CREATE TABLE `suket_non_kk` (
-  `id_suket_non_kk` int(11) NOT NULL,
-  `id_desa` int(11) DEFAULT NULL,
-  `id_user` int(11) NOT NULL DEFAULT 1,
-  `no_surat` varchar(75) DEFAULT NULL,
-  `nama_p1` varchar(75) DEFAULT NULL,
-  `jabatan_p1` varchar(50) DEFAULT NULL,
-  `alamat_p1` varchar(225) DEFAULT NULL,
-  `nama_p2` varchar(75) DEFAULT NULL,
-  `jk_p2` varchar(35) DEFAULT NULL,
-  `tempat_lahir_p2` varchar(35) DEFAULT NULL,
+  `id_suket_non_kk` int NOT NULL,
+  `id_desa` int DEFAULT NULL,
+  `id_user` int NOT NULL DEFAULT '1',
+  `no_surat` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p1` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jabatan_p1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p1` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p2` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jk_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tempat_lahir_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_lahir_p2` date DEFAULT NULL,
-  `pekerjaan_p2` varchar(50) DEFAULT NULL,
-  `agama_p2` varchar(35) DEFAULT NULL,
-  `kewarganegaraan` varchar(50) DEFAULT NULL,
-  `alamat_p2` varchar(225) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `pekerjaan_p2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `kewarganegaraan` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p2` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `suket_non_kk`
---
-
-INSERT INTO `suket_non_kk` (`id_suket_non_kk`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `jk_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `pekerjaan_p2`, `agama_p2`, `kewarganegaraan`, `alamat_p2`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, '140/DS.DL/ SKET.BMKK/VII/ 2023', 'Adriana Hila Kore', 'Sekretaris Desa', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'PETRONELA HILA KORE', 'Perempuan', 'Delo', '1992-01-24', 'Petani/Pekebun', 'Kristen', 'Indonesia', 'RT 001, RW 001, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', '2024-02-29 21:44:41', '2024-03-13 12:08:42');
 
 -- --------------------------------------------------------
 
@@ -365,43 +341,37 @@ INSERT INTO `suket_non_kk` (`id_suket_non_kk`, `id_desa`, `id_user`, `no_surat`,
 --
 
 CREATE TABLE `suket_tidak_mampu` (
-  `id_suket_tidak_mampu` int(11) NOT NULL,
-  `id_desa` int(11) DEFAULT NULL,
-  `id_user` int(11) NOT NULL DEFAULT 1,
-  `no_surat` varchar(75) DEFAULT NULL,
-  `nama_p1` varchar(75) DEFAULT NULL,
-  `jabatan_p1` varchar(50) DEFAULT NULL,
-  `alamat_p1` varchar(225) DEFAULT NULL,
-  `nama_ayah` varchar(75) DEFAULT NULL,
-  `umur_ayah` int(11) DEFAULT NULL,
-  `alamat_ayah` varchar(225) DEFAULT NULL,
-  `pekerjaan_ayah` varchar(50) DEFAULT NULL,
-  `agama_ayah` varchar(50) DEFAULT NULL,
-  `nama_ibu` varchar(75) DEFAULT NULL,
-  `umur_ibu` int(11) DEFAULT NULL,
-  `alamat_ibu` varchar(225) DEFAULT NULL,
-  `pekerjaan_ibu` varchar(50) DEFAULT NULL,
-  `agama_ibu` varchar(50) DEFAULT NULL,
-  `nama_anak` varchar(75) DEFAULT NULL,
-  `tempat_lahir_anak` varchar(50) DEFAULT NULL,
+  `id_suket_tidak_mampu` int NOT NULL,
+  `id_desa` int DEFAULT NULL,
+  `id_user` int NOT NULL DEFAULT '1',
+  `no_surat` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p1` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jabatan_p1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p1` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_ayah` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `umur_ayah` int DEFAULT NULL,
+  `alamat_ayah` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pekerjaan_ayah` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_ayah` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_ibu` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `umur_ibu` int DEFAULT NULL,
+  `alamat_ibu` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pekerjaan_ibu` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_ibu` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_anak` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tempat_lahir_anak` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_lahir_anak` date DEFAULT NULL,
-  `nik_anak` char(20) DEFAULT NULL,
-  `no_kk_anak` char(20) DEFAULT NULL,
-  `jk_anak` varchar(35) DEFAULT NULL,
-  `umur_anak` int(11) DEFAULT NULL,
-  `alamat_anak` varchar(225) DEFAULT NULL,
-  `pekerjaan_anak` varchar(50) DEFAULT NULL,
-  `agama_anak` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `nik_anak` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `no_kk_anak` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jk_anak` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `umur_anak` int DEFAULT NULL,
+  `alamat_anak` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pekerjaan_anak` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_anak` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `suket_tidak_mampu`
---
-
-INSERT INTO `suket_tidak_mampu` (`id_suket_tidak_mampu`, `id_desa`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_ayah`, `umur_ayah`, `alamat_ayah`, `pekerjaan_ayah`, `agama_ayah`, `nama_ibu`, `umur_ibu`, `alamat_ibu`, `pekerjaan_ibu`, `agama_ibu`, `nama_anak`, `tempat_lahir_anak`, `tgl_lahir_anak`, `nik_anak`, `no_kk_anak`, `jk_anak`, `umur_anak`, `alamat_anak`, `pekerjaan_anak`, `agama_anak`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, '119/SKET. TM/ DS. DL/VII/2023', 'ADRIANA HILA KORE', 'Sekretaris Desa Delo', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'OKTOVIANUS KABO', 51, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Petani/Pekebun', 'Kristen', 'MARTHA NAWA', 47, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Petani/Pekebun', 'Kristen', 'JUNIALDI ERIKSON HUKI', 'Terupulomi', '2005-06-12', '5320011206050001', '5320010902120080', 'Laki-laki', 18, 'RT 011, RW 006, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Mahasiswa', 'Kristen', '2024-02-29 22:53:54', '2024-03-13 12:09:20');
 
 -- --------------------------------------------------------
 
@@ -410,31 +380,25 @@ INSERT INTO `suket_tidak_mampu` (`id_suket_tidak_mampu`, `id_desa`, `id_user`, `
 --
 
 CREATE TABLE `suket_usaha` (
-  `id_suket_usaha` int(11) NOT NULL,
-  `id_desa` int(11) DEFAULT NULL,
-  `id_rt` int(11) DEFAULT NULL,
-  `id_user` int(11) NOT NULL DEFAULT 1,
-  `no_surat` varchar(75) DEFAULT NULL,
-  `nama_p1` varchar(75) DEFAULT NULL,
-  `jabatan_p1` varchar(50) DEFAULT NULL,
-  `alamat_p1` varchar(225) DEFAULT NULL,
-  `nama_p2` varchar(75) DEFAULT NULL,
-  `tempat_lahir_p2` varchar(50) DEFAULT NULL,
+  `id_suket_usaha` int NOT NULL,
+  `id_desa` int DEFAULT NULL,
+  `id_rt` int DEFAULT NULL,
+  `id_user` int NOT NULL DEFAULT '1',
+  `no_surat` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p1` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `jabatan_p1` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `alamat_p1` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nama_p2` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tempat_lahir_p2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `tgl_lahir_p2` date DEFAULT NULL,
-  `alamat_p2` varchar(225) DEFAULT NULL,
-  `agama_p2` varchar(35) NOT NULL,
-  `pekerjaan_p2` varchar(50) DEFAULT NULL,
-  `ket_p2` text NOT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `alamat_p2` varchar(225) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `agama_p2` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `pekerjaan_p2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ket_p2` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `suket_usaha`
---
-
-INSERT INTO `suket_usaha` (`id_suket_usaha`, `id_desa`, `id_rt`, `id_user`, `no_surat`, `nama_p1`, `jabatan_p1`, `alamat_p1`, `nama_p2`, `tempat_lahir_p2`, `tgl_lahir_p2`, `alamat_p2`, `agama_p2`, `pekerjaan_p2`, `ket_p2`, `created_at`, `updated_at`) VALUES
-(1, 1, 8, 2, '200/DS.DL/SKET.U/XI/2023', 'DANIEL LOGO', 'Kepala Desa Delo', 'Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'YOSINA RADJA MODJO', 'Menia', '1952-03-17', 'RT 010, RW 005, Desa Delo, Kec. Sabu Barat, Kab. Sabu Raijua, Prov. Nusa Tenggara Timur', 'Kristen', 'Petani/Pekebun', 'Pedagang Kaki Lima dengan jenis usaha hasil pertanian', '2024-03-01 07:48:01', '2024-03-13 12:10:03');
 
 -- --------------------------------------------------------
 
@@ -443,17 +407,17 @@ INSERT INTO `suket_usaha` (`id_suket_usaha`, `id_desa`, `id_rt`, `id_user`, `no_
 --
 
 CREATE TABLE `users` (
-  `id_user` int(11) NOT NULL,
-  `id_role` int(11) DEFAULT NULL,
-  `id_active` int(11) DEFAULT 2,
-  `en_user` varchar(75) DEFAULT NULL,
-  `token` char(6) DEFAULT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `image` varchar(100) DEFAULT 'default.svg',
-  `email` varchar(75) DEFAULT NULL,
-  `password` varchar(75) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp()
+  `id_user` int NOT NULL,
+  `id_role` int DEFAULT NULL,
+  `id_active` int DEFAULT '2',
+  `en_user` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `token` char(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'default.svg',
+  `email` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -462,7 +426,11 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id_user`, `id_role`, `id_active`, `en_user`, `token`, `name`, `image`, `email`, `password`, `created_at`, `updated_at`) VALUES
 (1, 1, 1, NULL, NULL, 'VINI', 'default.svg', 'admin@gmail.com', '$2y$10$//KMATh3ibPoI3nHFp7x/u7vnAbo2WyUgmI4x0CVVrH8ajFhMvbjG', '2024-02-15 09:47:54', '2024-02-15 09:47:54'),
-(2, 2, 1, '2y10o8DEAuAAJWWJvLSk6rjtreElcfLRg3ePPxyaelFZDCZUYcZjiou', '848646', 'Netmedia Framecode', 'default.svg', 'netmediaframecode@gmail.com', '$2y$10$zmTfjlJeD1dcdhhcM1MWOeOWiwU85RH0ZceLFTTKCnQiCd9g8rb/O', '2024-03-13 11:41:31', '2024-03-13 11:42:04');
+(2, 2, 1, '2y10o8DEAuAAJWWJvLSk6rjtreElcfLRg3ePPxyaelFZDCZUYcZjiou', '848646', 'Netmedia Framecode', 'default.svg', 'netmediaframecode@gmail.com', '$2y$10$zmTfjlJeD1dcdhhcM1MWOeOWiwU85RH0ZceLFTTKCnQiCd9g8rb/O', '2024-03-13 11:41:31', '2024-03-13 11:42:04'),
+(5, 2, 2, '2y10EhOFewY6YqoOOZyu91PzeGwPFerx0gTENTqg3PU7rHy4FL8YC', '596947', 'Elhen', 'default.svg', 'ottowelhelmina@gmail.com', '$2y$10$bhUHkd6J/E/vMLj.l/jKNew42CJlWlDIOpxRwADvX5yHU1s3pt49G', '2024-05-03 18:59:35', '2024-05-03 18:59:35'),
+(6, 2, 2, '2y10IeoRe9U3iHVkNpMide6nyunU70413oGeLUtw8B2aSi7Mrjl6gMa', '738751', 'arghh', 'default.svg', 'arghhh4@gmail.com', '$2y$10$nQWEE7o1da8.BKqtS8HeEuEIy/IbHF.rtDsNzEjaVEPZoS7gcfise', '2024-05-03 18:59:35', '2024-05-03 18:59:35'),
+(7, 2, 1, '2y106pb81oj23pp0l466Jy17DB0RFffHBD4e6BYBUIjOSRlKcIQeUWW', '406217', 'iren', 'default.svg', 'irenpasu@gmail.com', '$2y$10$EkbzGVKGx3cfdR8v7a9mG.jBhXC.ekQeAOknxZPzdLM/Eby2XPg0y', '2024-05-03 18:59:35', '2024-05-03 18:59:35'),
+(8, 2, 2, '2y10AGx6pcOJwwdAGGfRdpeCTemDaTaPSaEolU6uMAhr5U3v44kQgYfi', '915931', 'demo', 'default.svg', 'demo@demo.net', '$2y$10$I7mimaFPC6NQoJX6aSH0aen3fVkIGultPhGC336jCrnsFcUO7Ql7q', '2024-05-03 18:59:35', '2024-05-03 18:59:35');
 
 --
 -- Trigger `users`
@@ -486,9 +454,9 @@ DELIMITER ;
 --
 
 CREATE TABLE `user_access_menu` (
-  `id_access_menu` int(11) NOT NULL,
-  `id_role` int(11) DEFAULT NULL,
-  `id_menu` int(11) DEFAULT NULL
+  `id_access_menu` int NOT NULL,
+  `id_role` int DEFAULT NULL,
+  `id_menu` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -510,9 +478,9 @@ INSERT INTO `user_access_menu` (`id_access_menu`, `id_role`, `id_menu`) VALUES
 --
 
 CREATE TABLE `user_access_sub_menu` (
-  `id_access_sub_menu` int(11) NOT NULL,
-  `id_role` int(11) DEFAULT NULL,
-  `id_sub_menu` int(11) DEFAULT NULL
+  `id_access_sub_menu` int NOT NULL,
+  `id_role` int DEFAULT NULL,
+  `id_sub_menu` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -546,7 +514,8 @@ INSERT INTO `user_access_sub_menu` (`id_access_sub_menu`, `id_role`, `id_sub_men
 (26, 2, 18),
 (27, 2, 19),
 (28, 2, 20),
-(29, 2, 21);
+(29, 2, 21),
+(30, 1, 26);
 
 -- --------------------------------------------------------
 
@@ -555,8 +524,8 @@ INSERT INTO `user_access_sub_menu` (`id_access_sub_menu`, `id_role`, `id_sub_men
 --
 
 CREATE TABLE `user_menu` (
-  `id_menu` int(11) NOT NULL,
-  `menu` varchar(50) DEFAULT NULL
+  `id_menu` int NOT NULL,
+  `menu` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -577,8 +546,8 @@ INSERT INTO `user_menu` (`id_menu`, `menu`) VALUES
 --
 
 CREATE TABLE `user_role` (
-  `id_role` int(11) NOT NULL,
-  `role` varchar(35) DEFAULT NULL
+  `id_role` int NOT NULL,
+  `role` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -596,8 +565,8 @@ INSERT INTO `user_role` (`id_role`, `role`) VALUES
 --
 
 CREATE TABLE `user_status` (
-  `id_status` int(11) NOT NULL,
-  `status` varchar(35) DEFAULT NULL
+  `id_status` int NOT NULL,
+  `status` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -615,12 +584,12 @@ INSERT INTO `user_status` (`id_status`, `status`) VALUES
 --
 
 CREATE TABLE `user_sub_menu` (
-  `id_sub_menu` int(11) NOT NULL,
-  `id_menu` int(11) DEFAULT NULL,
-  `id_active` int(11) DEFAULT 2,
-  `title` varchar(50) DEFAULT NULL,
-  `url` varchar(50) DEFAULT NULL,
-  `icon` varchar(50) DEFAULT NULL
+  `id_sub_menu` int NOT NULL,
+  `id_menu` int DEFAULT NULL,
+  `id_active` int DEFAULT '2',
+  `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `url` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -648,7 +617,8 @@ INSERT INTO `user_sub_menu` (`id_sub_menu`, `id_menu`, `id_active`, `title`, `ur
 (21, 4, 1, 'Usaha', 'usaha', 'fas fa-list-ol'),
 (23, 5, 1, 'Kontak', 'kontak', 'fas fa-comments'),
 (24, 5, 1, 'Visi', 'visi', 'fas fa-list-ul'),
-(25, 5, 1, 'Misi', 'misi', 'fas fa-list-ul');
+(25, 5, 1, 'Misi', 'misi', 'fas fa-list-ul'),
+(26, 4, 1, 'Daftar Pengajuan Surat', 'daftar-pengajuan-surat', 'fas fa-list');
 
 -- --------------------------------------------------------
 
@@ -657,8 +627,8 @@ INSERT INTO `user_sub_menu` (`id_sub_menu`, `id_menu`, `id_active`, `title`, `ur
 --
 
 CREATE TABLE `visi` (
-  `id` int(11) NOT NULL,
-  `visi` text DEFAULT NULL
+  `id` int NOT NULL,
+  `visi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -666,7 +636,7 @@ CREATE TABLE `visi` (
 --
 
 INSERT INTO `visi` (`id`, `visi`) VALUES
-(1, '<p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Consequuntur, saepe dolor ratione reiciendis quae cum beatae iste quidem sunt aliquid provident culpa, mollitia maxime atque eveniet, eius laboriosam facilis porro omnis at commodi assumenda? Asperiores adipisci iste at laudantium commodi exercitationem voluptatem tenetur, animi temporibus sed nam dicta quae saepe.</p>\r\n');
+(1, '<p>MEWUDJUDKAN&nbsp; DESA YANG UNGGUL DALAM PEMERINTAHAN&nbsp; BERKEMBANG MAJU MENUJU KESEJATRAAN MASYARAKAT SEUTUHNYA</p>\n');
 
 --
 -- Indexes for dumped tables
@@ -845,139 +815,139 @@ ALTER TABLE `visi`
 -- AUTO_INCREMENT untuk tabel `auth`
 --
 ALTER TABLE `auth`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `desa`
 --
 ALTER TABLE `desa`
-  MODIFY `id_desa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_desa` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `kabupaten`
 --
 ALTER TABLE `kabupaten`
-  MODIFY `id_kabupaten` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_kabupaten` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `kecamatan`
 --
 ALTER TABLE `kecamatan`
-  MODIFY `id_kecamatan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_kecamatan` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `kontak`
 --
 ALTER TABLE `kontak`
-  MODIFY `id_kontak` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_kontak` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `misi`
 --
 ALTER TABLE `misi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `provinsi`
 --
 ALTER TABLE `provinsi`
-  MODIFY `id_provinsi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_provinsi` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `rt`
 --
 ALTER TABLE `rt`
-  MODIFY `id_rt` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id_rt` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `rw`
 --
 ALTER TABLE `rw`
-  MODIFY `id_rw` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_rw` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT untuk tabel `suket_domisili`
 --
 ALTER TABLE `suket_domisili`
-  MODIFY `id_suket_domisili` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_suket_domisili` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `suket_kelahiran`
 --
 ALTER TABLE `suket_kelahiran`
-  MODIFY `id_suket_kelahiran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_suket_kelahiran` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `suket_kematian`
 --
 ALTER TABLE `suket_kematian`
-  MODIFY `id_suket_kematian` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_suket_kematian` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `suket_non_kk`
 --
 ALTER TABLE `suket_non_kk`
-  MODIFY `id_suket_non_kk` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_suket_non_kk` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `suket_tidak_mampu`
 --
 ALTER TABLE `suket_tidak_mampu`
-  MODIFY `id_suket_tidak_mampu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_suket_tidak_mampu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `suket_usaha`
 --
 ALTER TABLE `suket_usaha`
-  MODIFY `id_suket_usaha` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_suket_usaha` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_user` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_access_menu`
 --
 ALTER TABLE `user_access_menu`
-  MODIFY `id_access_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_access_menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_access_sub_menu`
 --
 ALTER TABLE `user_access_sub_menu`
-  MODIFY `id_access_sub_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id_access_sub_menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_menu`
 --
 ALTER TABLE `user_menu`
-  MODIFY `id_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_role`
 --
 ALTER TABLE `user_role`
-  MODIFY `id_role` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_role` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_status`
 --
 ALTER TABLE `user_status`
-  MODIFY `id_status` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_status` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_sub_menu`
 --
 ALTER TABLE `user_sub_menu`
-  MODIFY `id_sub_menu` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id_sub_menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT untuk tabel `visi`
 --
 ALTER TABLE `visi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -1061,21 +1031,21 @@ ALTER TABLE `suket_usaha`
 -- Ketidakleluasaan untuk tabel `users`
 --
 ALTER TABLE `users`
-  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `user_role` (`id_role`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id_active`) REFERENCES `user_status` (`id_status`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `user_role` (`id_role`),
+  ADD CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id_active`) REFERENCES `user_status` (`id_status`);
 
 --
 -- Ketidakleluasaan untuk tabel `user_access_menu`
 --
 ALTER TABLE `user_access_menu`
-  ADD CONSTRAINT `user_access_menu_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `user_role` (`id_role`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `user_access_menu_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `user_role` (`id_role`),
   ADD CONSTRAINT `user_access_menu_ibfk_2` FOREIGN KEY (`id_menu`) REFERENCES `user_menu` (`id_menu`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `user_access_sub_menu`
 --
 ALTER TABLE `user_access_sub_menu`
-  ADD CONSTRAINT `user_access_sub_menu_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `user_role` (`id_role`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `user_access_sub_menu_ibfk_1` FOREIGN KEY (`id_role`) REFERENCES `user_role` (`id_role`),
   ADD CONSTRAINT `user_access_sub_menu_ibfk_2` FOREIGN KEY (`id_sub_menu`) REFERENCES `user_sub_menu` (`id_sub_menu`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -1083,7 +1053,7 @@ ALTER TABLE `user_access_sub_menu`
 --
 ALTER TABLE `user_sub_menu`
   ADD CONSTRAINT `user_sub_menu_ibfk_1` FOREIGN KEY (`id_menu`) REFERENCES `user_menu` (`id_menu`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `user_sub_menu_ibfk_2` FOREIGN KEY (`id_active`) REFERENCES `user_status` (`id_status`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `user_sub_menu_ibfk_2` FOREIGN KEY (`id_active`) REFERENCES `user_status` (`id_status`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
