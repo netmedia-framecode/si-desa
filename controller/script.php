@@ -8,7 +8,12 @@ require_once("functions.php");
 
 $messageTypes = ["success", "info", "warning", "danger", "dark"];
 
-$baseURL = "http://$_SERVER[HTTP_HOST]/si_desa/";
+$baseURL = "http://$_SERVER[HTTP_HOST]/apps/tugas/si_desa/";
+$hostname = $_SERVER['HTTP_HOST'];
+$port = $_SERVER['SERVER_PORT'];
+if (strpos($hostname, 'apps.test') !== false && $port == 8080) {
+  $baseURL = str_replace('/apps/', '/', $baseURL);
+}
 $name_website = "Sistem Informasi Desa";
 
 $select_auth = "SELECT * FROM auth";
@@ -328,7 +333,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
 
   $select_user_access_menu = "SELECT user_access_menu.*, user_role.role, user_menu.menu
                                 FROM user_access_menu 
-                                JOIN user_role ON user_access_menu.id_role=.user_role.id_role 
+                                JOIN user_role ON user_access_menu.id_role=user_role.id_role 
                                 JOIN user_menu ON user_access_menu.id_menu=user_menu.id_menu
                               ";
   $views_user_access_menu = mysqli_query($conn, $select_user_access_menu);
@@ -376,7 +381,7 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
 
   $select_user_access_sub_menu = "SELECT user_access_sub_menu.*, user_role.role, user_sub_menu.title
                                 FROM user_access_sub_menu 
-                                JOIN user_role ON user_access_sub_menu.id_role=.user_role.id_role 
+                                JOIN user_role ON user_access_sub_menu.id_role=user_role.id_role 
                                 JOIN user_sub_menu ON user_access_sub_menu.id_sub_menu=user_sub_menu.id_sub_menu
                               ";
   $views_user_access_sub_menu = mysqli_query($conn, $select_user_access_sub_menu);
@@ -990,6 +995,62 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
       $message_type = "success";
       alert($message, $message_type);
       header("Location: kontak");
+      exit();
+    }
+  }
+
+  $penduduk = "SELECT penduduk.*, rt.rt, rw.rw, desa.desa FROM penduduk 
+    JOIN rt ON penduduk.id_rt=rt.id_rt 
+    JOIN rw ON penduduk.id_rw=rw.id_rw 
+    JOIN desa ON penduduk.id_desa=desa.id_desa 
+    ORDER BY penduduk.id_penduduk DESC LIMIT 100
+  ";
+  $views_penduduk = mysqli_query($conn, $penduduk);
+  if (isset($_POST['add_penduduk'])) {
+    $validated_post = array_map(function ($value) use ($conn) {
+      return valid($conn, $value);
+    }, $_POST);
+    if (penduduk($conn, $validated_post, $action = 'insert') > 0) {
+      $message = "Data penduduk berhasil dibuat.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: data-penduduk");
+      exit();
+    }
+  }
+  if (isset($_POST['import_penduduk'])) {
+    $validated_post = array_map(function ($value) use ($conn) {
+      return valid($conn, $value);
+    }, $_POST);
+    if (penduduk($conn, $validated_post, $action = 'import') > 0) {
+      $message = "Data penduduk berhasil diupload.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: data-penduduk");
+      exit();
+    }
+  }
+  if (isset($_POST['edit_penduduk'])) {
+    $validated_post = array_map(function ($value) use ($conn) {
+      return valid($conn, $value);
+    }, $_POST);
+    if (penduduk($conn, $validated_post, $action = 'update') > 0) {
+      $message = "Data penduduk berhasil diubah.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: data-penduduk");
+      exit();
+    }
+  }
+  if (isset($_POST['delete_penduduk'])) {
+    $validated_post = array_map(function ($value) use ($conn) {
+      return valid($conn, $value);
+    }, $_POST);
+    if (penduduk($conn, $validated_post, $action = 'delete') > 0) {
+      $message = "Data penduduk berhasil dihapus.";
+      $message_type = "success";
+      alert($message, $message_type);
+      header("Location: data-penduduk");
       exit();
     }
   }

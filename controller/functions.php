@@ -1,4 +1,35 @@
 <?php
+
+function handle_error($errno, $errstr, $errfile, $errline)
+{
+  // Create error log file path based on the file where the error occurred
+  $errorLog = dirname(__FILE__) . '/error_log.log'; // Error log file location within the project folder
+
+  // Format error message with additional information
+  $error_message = "[" . date("Y-m-d H:i:s") . "] Error [$errno]: $errstr in $errfile on line $errline" . PHP_EOL;
+
+  // Attempt to open the error log file in append mode, creating it if it doesn't exist
+  $file_handle = fopen($errorLog, 'a');
+  if ($file_handle !== false) {
+    // Write error message to the log file
+    fwrite($file_handle, $error_message);
+    // Close the file handle
+    fclose($file_handle);
+  }
+
+  // Save error message in session
+  $_SESSION['error_message'] = $error_message;
+
+  // Redirect user back to the same page only if there is no error
+  if (!isset($_SESSION['error_flag'])) {
+    // Set error flag to prevent infinite redirection loop
+    $_SESSION['error_flag'] = true;
+    // Redirect user back to the same page
+    header("Location: {$_SERVER['REQUEST_URI']}");
+    exit(); // Stop further execution
+  }
+}
+
 function valid($conn, $value)
 {
   $valid = htmlspecialchars(addslashes(trim(mysqli_real_escape_string($conn, $value))));
@@ -1039,6 +1070,114 @@ if (isset($_SESSION["project_sistem_informasi_desa"]["users"])) {
     }
 
     mysqli_query($conn, $sql);
+    return mysqli_affected_rows($conn);
+  }
+
+  function penduduk($conn, $data, $action)
+  {
+    if ($action == "insert") {
+      $penduduk = "SELECT * FROM penduduk WHERE nama_lengkap='$data[nama_lengkap]' OR nik='$data[nik]'";
+      $data_penduduk = mysqli_query($conn, $penduduk);
+      if (mysqli_num_rows($data_penduduk) > 0) {
+        $message = "Data penduduk dengan nama lengkap $data[nama_lengkap] atau NIK $data[nik] yang anda masukan sudah ada.";
+        $message_type = "danger";
+        alert($message, $message_type);
+        return false;
+      } else {
+        $sql = "INSERT INTO penduduk(nama_lengkap,nik,jenis_kelamin,tempat_lahir,tanggal_lahir,agama,pendidikan,jenis_pekerjaan,status_perkawinan,status_hub_keluarga,kewarganegaraan,nama_ayah,nama_ibu,id_rt,id_rw,id_desa) VALUES('$data[nama_lengkap]','$data[nik]','$data[jenis_kelamin]','$data[tempat_lahir]','$data[tanggal_lahir]','$data[agama]','$data[pendidikan]','$data[jenis_pekerjaan]','$data[status_perkawinan]','$data[status_hub_keluarga]','$data[kewarganegaraan]','$data[nama_ayah]','$data[nama_ibu]','$data[id_rt]','$data[id_rw]','$data[id_desa]')";
+        mysqli_query($conn, $sql);
+      }
+    }
+
+    if ($action == "import") {
+      require '../assets/PHPExcel/Classes/PHPExcel.php';
+      require '../assets/PHPExcel/Classes/PHPExcel/Calculation.php';
+      require '../assets/PHPExcel/Classes/PHPExcel/Cell.php';
+
+      // Ambil file yang diupload
+      $nama_file = $_FILES['file_penduduk']['name'];
+      $tmp_file = $_FILES['file_penduduk']['tmp_name'];
+
+      // Cek apakah file yang diupload adalah file Excel
+      $ext = pathinfo($nama_file, PATHINFO_EXTENSION);
+      if ($ext != 'xls' && $ext != 'xlsx') {
+        $message = "Hanya file Excel yang diperbolehkan!";
+        $message_type = "danger";
+        alert($message, $message_type);
+        return false;
+      }
+
+      // Load file Excel menggunakan PHPExcel
+      $objPHPExcel = PHPExcel_IOFactory::load($tmp_file);
+
+      // Ambil data dari file Excel
+      $sheet = $objPHPExcel->getSheet(0);
+      $highestRow = $sheet->getHighestRow();
+      $highestColumn = $sheet->getHighestColumn();
+
+      // Loop untuk membaca data
+      for ($row = 3; $row <= $highestRow; $row++) {
+        $rowData = $sheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
+
+        // Simpan data ke database
+        $excel_date = $rowData[0][4];
+        $rt = $rowData[0][13];
+        $rw = $rowData[0][14];
+        $desa = $rowData[0][15];
+
+        $excel_base_date = 25569;
+        $php_base_date = strtotime('1970-01-01');
+        $tgl_lahir_baru = date('Y-m-d', ($excel_date - $excel_base_date) * 86400 + $php_base_date);
+        $check_rt = "SELECT * FROM rt WHERE rt LIKE '%$rt%' LIMIT 1";
+        $views_kategori = mysqli_query($conn, $check_rt);
+        if (mysqli_num_rows($views_kategori) > 0) {
+          $data_rt = mysqli_fetch_assoc($views_kategori);
+          $id_rt = $data_rt['id_rt'];
+        } else {
+          $id_rt = 6;
+        }
+        $check_rw = "SELECT * FROM rw WHERE rw LIKE '%$rw%' LIMIT 1";
+        $views_rw = mysqli_query($conn, $check_rw);
+        if (mysqli_num_rows($views_rw) > 0) {
+          $data_rw = mysqli_fetch_assoc($views_rw);
+          $id_rw = $data_rw['id_rw'];
+        } else {
+          $id_rw = 7;
+        }
+        $check_desa = "SELECT * FROM desa WHERE desa LIKE '%$desa%' LIMIT 1";
+        $views_desa = mysqli_query($conn, $check_desa);
+        if (mysqli_num_rows($views_desa) > 0) {
+          $data_desa = mysqli_fetch_assoc($views_desa);
+          $id_desa = $data_desa['id_desa'];
+        } else {
+          $id_desa = 1;
+        }
+
+        $sql = "INSERT INTO penduduk (nama_lengkap,nik,jenis_kelamin,tempat_lahir,tanggal_lahir,agama,pendidikan,jenis_pekerjaan,status_perkawinan,status_hub_keluarga,kewarganegaraan,nama_ayah,nama_ibu,id_rt,id_rw,id_desa) VALUES ('" . $rowData[0][0] . "', '" . $rowData[0][1] . "', '" . $rowData[0][2] . "', '" . $rowData[0][3] . "', '" . $tgl_lahir_baru . "', '" . $rowData[0][5] . "', '" . $rowData[0][6] . "', '" . $rowData[0][7] . "', '" . $rowData[0][8] . "', '" . $rowData[0][9] . "', '" . $rowData[0][10] . "', '" . $rowData[0][11] . "', '" . $rowData[0][12] . "','$id_rt','$id_rw','$id_desa')";
+        mysqli_query($conn, $sql);
+      }
+    }
+
+    if ($action == "update") {
+      if ($data['nama_lengkapOld'] !== $data['nama_lengkap'] || $data['nikOld'] !== $data['nik']) {
+        $penduduk = "SELECT * FROM penduduk WHERE nama_lengkap='$data[nama_lengkap]' OR nik='$data[nik]'";
+        $data_penduduk = mysqli_query($conn, $penduduk);
+        if (mysqli_num_rows($data_penduduk) > 0) {
+          $message = "Data penduduk dengan nama lengkap $data[nama_lengkap] atau NIK $data[nik] yang anda masukan sudah ada.";
+          $message_type = "danger";
+          alert($message, $message_type);
+          return false;
+        }
+      }
+      $sql = "UPDATE penduduk SET nama_lengkap='$data[nama_lengkap]', nik='$data[nik]', jenis_kelamin='$data[jenis_kelamin]', tempat_lahir='$data[tempat_lahir]', tanggal_lahir='$data[tanggal_lahir]', agama='$data[agama]', pendidikan='$data[pendidikan]', jenis_pekerjaan='$data[jenis_pekerjaan]', status_perkawinan='$data[status_perkawinan]', status_hub_keluarga='$data[status_hub_keluarga]', kewarganegaraan='$data[kewarganegaraan]', nama_ayah='$data[nama_ayah]', nama_ibu='$data[nama_ibu]', id_rt='$data[id_rt]', id_rw='$data[id_rw]', id_desa='$data[id_desa]' WHERE id_penduduk='$data[id_penduduk]'";
+      mysqli_query($conn, $sql);
+    }
+
+    if ($action == "delete") {
+      $sql = "DELETE FROM penduduk WHERE id_penduduk='$data[id_penduduk]'";
+      mysqli_query($conn, $sql);
+    }
+
     return mysqli_affected_rows($conn);
   }
 

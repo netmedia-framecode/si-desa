@@ -70,6 +70,31 @@ require_once("../templates/views_top.php"); ?>
                 <label for="nama_p2">Nama</label>
                 <input type="text" name="nama_p2" class="form-control" id="nama_p2" minlength="3" required>
               </div>
+              <!-- Skrip JavaScript -->
+              <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+              <script>
+                $(document).ready(function() {
+                  $('#nama_p2').on('input', function() {
+                    var nama = $(this).val();
+                    $.ajax({
+                      url: 'get_data_penduduk.php',
+                      type: 'POST',
+                      data: {
+                        nama: nama
+                      },
+                      dataType: 'json',
+                      success: function(response) {
+                        $('#tempat_lahir_p2').val(response.tempat_lahir);
+                        $('#tgl_lahir_p2').val(response.tanggal_lahir);
+                        $('#jk_p2').val(response.jenis_kelamin);
+                        $('#agama_p2').val(response.agama);
+                        $('#pekerjaan_p2').val(response.jenis_pekerjaan);
+                        $('#id_desa').val(response.id_desa);
+                      }
+                    });
+                  });
+                });
+              </script>
               <div class="form-group">
                 <label for="tempat_lahir_p2">Tempat Lahir</label>
                 <input type="text" name="tempat_lahir_p2" class="form-control" id="tempat_lahir_p2" minlength="3" required>

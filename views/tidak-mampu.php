@@ -58,132 +58,39 @@ require_once("../templates/views_top.php"); ?>
               </div>
               <hr>
               <p>Menerangkan dengan sebenarnya bahwa :</p>
-              <h6 class="font-weight-bold">Nama Orang Tua</h6>
-              <h6 class="font-weight-bold">1. Ayah</h6>
-              <div class="form-group">
-                <label for="nama_ayah">Nama</label>
-                <input type="text" name="nama_ayah" class="form-control" id="nama_ayah" minlength="3" required>
-              </div>
-              <div class="form-group">
-                <label for="umur_ayah">Umur</label>
-                <input type="number" name="umur_ayah" class="form-control" id="umur_ayah" min="1" required>
-              </div>
-              <div class="form-group">
-                <label for="alamat_ayah">Alamat</label>
-                <select name="alamat_ayah" class="form-control" id="alamat_ayah" required>
-                  <option value="" disabled selected>Pilih Alamat</option>
-                  <?php foreach ($views_rt as $data_rt) { ?>
-                    <option value="<?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>">
-                      <?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>
-                    </option>
-                  <?php } ?>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="pekerjaan_ayah">Pekerjaan</label>
-                <select name="pekerjaan_ayah" class="form-control" id="pekerjaan_ayah" onchange="showInput_ayah()">
-                  <option value="" disabled selected>Pilih Pekerjaan</option>
-                  <option value="Pegawai Swasta">Pegawai Swasta</option>
-                  <option value="PNS">Pegawai Negeri Sipil (PNS)</option>
-                  <option value="Wiraswasta">Wiraswasta</option>
-                  <option value="Mahasiswa">Mahasiswa</option>
-                  <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
-              <div class="form-group" id="inputManual_ayah" style="display: none;">
-                <label for="pekerjaan_ayah_other">Pekerjaan Lainnya</label>
-                <input type="text" name="pekerjaan_ayah_other" class="form-control" id="pekerjaan_ayah_other" minlength="3">
-              </div>
-              <script>
-                function showInput_ayah() {
-                  var select = document.getElementById("pekerjaan_ayah");
-                  var inputManual_ayah = document.getElementById("inputManual_ayah");
-
-                  if (select.value === "Lainnya") {
-                    inputManual_ayah.style.display = "block";
-                  } else {
-                    inputManual_ayah.style.display = "none";
-                  }
-                }
-              </script>
-              <div class="form-group">
-                <label for="agama_ayah">Agama</label>
-                <select name="agama_ayah" class="form-control" id="agama_ayah" required>
-                  <option value="" disabled selected>Pilih Agama</option>
-                  <option value="Islam">Islam</option>
-                  <option value="Kristen">Kristen</option>
-                  <option value="Katolik">Katolik</option>
-                  <option value="Hindu">Hindu</option>
-                  <option value="Buddha">Buddha</option>
-                  <option value="Konghucu">Konghucu</option>
-                </select>
-              </div>
-              <h6 class="font-weight-bold">2. Ibu</h6>
-              <div class="form-group">
-                <label for="nama_ibu">Nama</label>
-                <input type="text" name="nama_ibu" class="form-control" id="nama_ibu" minlength="3" required>
-              </div>
-              <div class="form-group">
-                <label for="umur_ibu">Umur</label>
-                <input type="number" name="umur_ibu" class="form-control" id="umur_ibu" min="1" required>
-              </div>
-              <div class="form-group">
-                <label for="alamat_ibu">Alamat</label>
-                <select name="alamat_ibu" class="form-control" id="alamat_ibu" required>
-                  <option value="" disabled selected>Pilih Alamat</option>
-                  <?php foreach ($views_rt as $data_rt) { ?>
-                    <option value="<?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>">
-                      <?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>
-                    </option>
-                  <?php } ?>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="pekerjaan_ibu">Pekerjaan</label>
-                <select name="pekerjaan_ibu" class="form-control" id="pekerjaan_ibu" onchange="showInput_ibu()">
-                  <option value="" disabled selected>Pilih Pekerjaan</option>
-                  <option value="Pegawai Swasta">Pegawai Swasta</option>
-                  <option value="PNS">Pegawai Negeri Sipil (PNS)</option>
-                  <option value="Wiraswasta">Wiraswasta</option>
-                  <option value="Mahasiswa">Mahasiswa</option>
-                  <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
-              <div class="form-group" id="inputManual_ibu" style="display: none;">
-                <label for="pekerjaan_ibu_other">Pekerjaan Lainnya</label>
-                <input type="text" name="pekerjaan_ibu_other" class="form-control" id="pekerjaan_ibu_other" minlength="3">
-              </div>
-              <script>
-                function showInput_ibu() {
-                  var select = document.getElementById("pekerjaan_ibu");
-                  var inputManual_ibu = document.getElementById("inputManual_ibu");
-
-                  if (select.value === "Lainnya") {
-                    inputManual_ibu.style.display = "block";
-                  } else {
-                    inputManual_ibu.style.display = "none";
-                  }
-                }
-              </script>
-              <div class="form-group">
-                <label for="agama_ibu">Agama</label>
-                <select name="agama_ibu" class="form-control" id="agama_ibu" required>
-                  <option value="" disabled selected>Pilih Agama</option>
-                  <option value="Islam">Islam</option>
-                  <option value="Kristen">Kristen</option>
-                  <option value="Katolik">Katolik</option>
-                  <option value="Hindu">Hindu</option>
-                  <option value="Buddha">Buddha</option>
-                  <option value="Konghucu">Konghucu</option>
-                </select>
-              </div>
-              <h6 class="font-weight-bold">3. Nama Anak</h6>
+              <h6 class="font-weight-bold">1. Nama Anak</h6>
               <div class="form-group">
                 <label for="nama_anak">Nama</label>
                 <input type="text" name="nama_anak" class="form-control" id="nama_anak" minlength="3" required>
               </div>
+              <!-- Skrip JavaScript -->
+              <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+              <script>
+                $(document).ready(function() {
+                  $('#nama_anak').on('input', function() {
+                    var nama = $(this).val();
+                    $.ajax({
+                      url: 'get_data_penduduk.php',
+                      type: 'POST',
+                      data: {
+                        nama: nama
+                      },
+                      dataType: 'json',
+                      success: function(response) {
+                        $('#nik_anak').val(response.nik);
+                        $('#tempat_lahir_anak').val(response.tempat_lahir);
+                        $('#tgl_lahir_anak').val(response.tanggal_lahir);
+                        $('#jk_anak').val(response.jenis_kelamin);
+                        $('#agama_anak').val(response.agama);
+                        $('#pekerjaan_anak').val(response.jenis_pekerjaan);
+                        $('#nama_ayah').val(response.nama_ayah);
+                        $('#nama_ibu').val(response.nama_ibu);
+                        $('#id_desa').val(response.id_desa);
+                      }
+                    });
+                  });
+                });
+              </script>
               <div class="form-group">
                 <label for="tempat_lahir_anak">Tempat Lahir</label>
                 <input type="text" name="tempat_lahir_anak" class="form-control" id="tempat_lahir_anak" minlength="3" required>
@@ -254,6 +161,127 @@ require_once("../templates/views_top.php"); ?>
               <div class="form-group">
                 <label for="agama_anak">Agama</label>
                 <select name="agama_anak" class="form-control" id="agama_anak" required>
+                  <option value="" disabled selected>Pilih Agama</option>
+                  <option value="Islam">Islam</option>
+                  <option value="Kristen">Kristen</option>
+                  <option value="Katolik">Katolik</option>
+                  <option value="Hindu">Hindu</option>
+                  <option value="Buddha">Buddha</option>
+                  <option value="Konghucu">Konghucu</option>
+                </select>
+              </div>
+              <h6 class="font-weight-bold">Nama Orang Tua</h6>
+              <h6 class="font-weight-bold">2. Ayah</h6>
+              <div class="form-group">
+                <label for="nama_ayah">Nama</label>
+                <input type="text" name="nama_ayah" class="form-control" id="nama_ayah" minlength="3" required>
+              </div>
+              <div class="form-group">
+                <label for="umur_ayah">Umur</label>
+                <input type="number" name="umur_ayah" class="form-control" id="umur_ayah" min="1" required>
+              </div>
+              <div class="form-group">
+                <label for="alamat_ayah">Alamat</label>
+                <select name="alamat_ayah" class="form-control" id="alamat_ayah" required>
+                  <option value="" disabled selected>Pilih Alamat</option>
+                  <?php foreach ($views_rt as $data_rt) { ?>
+                    <option value="<?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>">
+                      <?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>
+                    </option>
+                  <?php } ?>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="pekerjaan_ayah">Pekerjaan</label>
+                <select name="pekerjaan_ayah" class="form-control" id="pekerjaan_ayah" onchange="showInput_ayah()">
+                  <option value="" disabled selected>Pilih Pekerjaan</option>
+                  <option value="Pegawai Swasta">Pegawai Swasta</option>
+                  <option value="PNS">Pegawai Negeri Sipil (PNS)</option>
+                  <option value="Wiraswasta">Wiraswasta</option>
+                  <option value="Mahasiswa">Mahasiswa</option>
+                  <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <div class="form-group" id="inputManual_ayah" style="display: none;">
+                <label for="pekerjaan_ayah_other">Pekerjaan Lainnya</label>
+                <input type="text" name="pekerjaan_ayah_other" class="form-control" id="pekerjaan_ayah_other" minlength="3">
+              </div>
+              <script>
+                function showInput_ayah() {
+                  var select = document.getElementById("pekerjaan_ayah");
+                  var inputManual_ayah = document.getElementById("inputManual_ayah");
+
+                  if (select.value === "Lainnya") {
+                    inputManual_ayah.style.display = "block";
+                  } else {
+                    inputManual_ayah.style.display = "none";
+                  }
+                }
+              </script>
+              <div class="form-group">
+                <label for="agama_ayah">Agama</label>
+                <select name="agama_ayah" class="form-control" id="agama_ayah" required>
+                  <option value="" disabled selected>Pilih Agama</option>
+                  <option value="Islam">Islam</option>
+                  <option value="Kristen">Kristen</option>
+                  <option value="Katolik">Katolik</option>
+                  <option value="Hindu">Hindu</option>
+                  <option value="Buddha">Buddha</option>
+                  <option value="Konghucu">Konghucu</option>
+                </select>
+              </div>
+              <h6 class="font-weight-bold">3. Ibu</h6>
+              <div class="form-group">
+                <label for="nama_ibu">Nama</label>
+                <input type="text" name="nama_ibu" class="form-control" id="nama_ibu" minlength="3" required>
+              </div>
+              <div class="form-group">
+                <label for="umur_ibu">Umur</label>
+                <input type="number" name="umur_ibu" class="form-control" id="umur_ibu" min="1" required>
+              </div>
+              <div class="form-group">
+                <label for="alamat_ibu">Alamat</label>
+                <select name="alamat_ibu" class="form-control" id="alamat_ibu" required>
+                  <option value="" disabled selected>Pilih Alamat</option>
+                  <?php foreach ($views_rt as $data_rt) { ?>
+                    <option value="<?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>">
+                      <?= "RT " . $data_rt['rt'] . ", RW " . $data_rt['rw'] . ", Desa " . $data_rt['desa'] . ", Kec. " . $data_rt['kecamatan'] . ", Kab. " . $data_rt['kabupaten'] . ", Prov. " . $data_rt['provinsi'] ?>
+                    </option>
+                  <?php } ?>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="pekerjaan_ibu">Pekerjaan</label>
+                <select name="pekerjaan_ibu" class="form-control" id="pekerjaan_ibu" onchange="showInput_ibu()">
+                  <option value="" disabled selected>Pilih Pekerjaan</option>
+                  <option value="Pegawai Swasta">Pegawai Swasta</option>
+                  <option value="PNS">Pegawai Negeri Sipil (PNS)</option>
+                  <option value="Wiraswasta">Wiraswasta</option>
+                  <option value="Mahasiswa">Mahasiswa</option>
+                  <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <div class="form-group" id="inputManual_ibu" style="display: none;">
+                <label for="pekerjaan_ibu_other">Pekerjaan Lainnya</label>
+                <input type="text" name="pekerjaan_ibu_other" class="form-control" id="pekerjaan_ibu_other" minlength="3">
+              </div>
+              <script>
+                function showInput_ibu() {
+                  var select = document.getElementById("pekerjaan_ibu");
+                  var inputManual_ibu = document.getElementById("inputManual_ibu");
+
+                  if (select.value === "Lainnya") {
+                    inputManual_ibu.style.display = "block";
+                  } else {
+                    inputManual_ibu.style.display = "none";
+                  }
+                }
+              </script>
+              <div class="form-group">
+                <label for="agama_ibu">Agama</label>
+                <select name="agama_ibu" class="form-control" id="agama_ibu" required>
                   <option value="" disabled selected>Pilih Agama</option>
                   <option value="Islam">Islam</option>
                   <option value="Kristen">Kristen</option>
